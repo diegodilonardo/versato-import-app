@@ -32,10 +32,20 @@ async function generar(p=0){
   $('totales').replaceChildren();
   for(const [texto,v]of [['Grupos',d.resumen.grupos],['Módulos',d.resumen.modulos],['Total pares',d.resumen.pares],['Productos sin precio',d.resumen.sinPrecio]]){const c=document.createElement('div'),l=document.createElement('span'),b=document.createElement('strong');l.textContent=texto;b.textContent=numero(v);c.append(l,b);$('totales').append(c);}
   $('fechas').textContent=`Stock: ${new Date(d.fecha).toLocaleString('es-AR')} · Precios de Presea: ${new Date(d.fechaPrecios).toLocaleString('es-AR')}. Versión 1.`;
-  const cab=['Depósito','Marca','Modelo','Código color','Color','Tipo','Curva',...d.talles,'Cantidad','Total pares',...d.listas.map(l=>'Precio '+l)];
+  const cab=['Depósito','Marca','Modelo','Código color','Color','Tipo','Curva','Talles · pares','Cantidad','Total pares',...d.listas.map(l=>'Precio '+l)];
   const tr=document.createElement('tr');for(const c of cab){const th=document.createElement('th');th.textContent=c;tr.append(th);}$('tabla').tHead.replaceChildren(tr);
   const cuerpo=$('tabla').tBodies[0];cuerpo.replaceChildren();
-  for(const g of d.grupos){const tr=document.createElement('tr');for(const v of [g.deposito,g.marca,g.modelo,g.codigoColor,g.color,g.tipo,g.curva,...d.talles.map(t=>g.talles[t]??'—'),g.cantidad,g.totalPares,...d.listas.map(l=>g.precios[l])]){const td=document.createElement('td');td.textContent=numero(v);tr.append(td);}cuerpo.append(tr);}
+  for(const g of d.grupos){
+   const tr=document.createElement('tr');
+   for(const v of [g.deposito,g.marca,g.modelo,g.codigoColor,g.color,g.tipo,g.curva]){const td=document.createElement('td');td.textContent=numero(v);tr.append(td);}
+   const talles=document.createElement('td'),detalle=document.createElement('dl');detalle.className='stock-talles-verticales';
+   const valores=Object.entries(g.talles||{}).filter(([,cantidad])=>cantidad!==0).sort(([a],[b])=>a.localeCompare(b,'es',{numeric:true}));
+   if(valores.length){for(const [talle,cantidad]of valores){const fila=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=talle;dd.textContent=numero(cantidad);dd.setAttribute('aria-label',numero(cantidad)+' pares');fila.append(dt,dd);detalle.append(fila);}talles.append(detalle);}
+   else{talles.textContent='Sin desglose validado';talles.className='muted';}
+   tr.append(talles);
+   for(const v of [g.cantidad,g.totalPares,...d.listas.map(l=>g.precios[l])]){const td=document.createElement('td');td.textContent=numero(v);tr.append(td);}
+   cuerpo.append(tr);
+  }
   $('pagina').textContent=`Página ${p+1} de ${Math.max(1,Math.ceil(d.total/50))}`;$('anterior').disabled=p===0;$('siguiente').disabled=(p+1)*50>=d.total;
   estado(d.total?`${numero(d.total)} grupos. La descarga incluye todos los resultados, separados por marca y lista, con cada código de producto.`:'No hay existencias para esta selección.');
  }catch(e){if(n===solicitud){invalidar();estado(e.message);}}finally{$('generar').disabled=false;}
