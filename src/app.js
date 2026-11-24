@@ -1,12 +1,13 @@
 async function actualizarPreciosNV(id){
- await refrescarListaPresea();
- return analisisGuardados.guardarPreciosNV(id,async resultado=>{
-  const [precios,modulos,sueltos,previews]=await Promise.all([require('./services/listasPrecios').estado(),actualizarMaestro(),actualizarSueltos(),analisisGuardados.datosNV(id)]);
+ const etapa=async(nombre,operacion)=>{try{return await operacion();}catch(e){if(e.status)throw e;console.error('Control precios NV:',nombre,e.code||e.number||e.name);throw Object.assign(new Error('No se pudo completar el control de precios. Etapa: '+nombre+'. Revisá la configuración y los registros del servicio.'),{status:503,cause:e});}};
+ await etapa('actualizar la lista de Presea en SQL',()=>refrescarListaPresea());
+ return etapa('guardar el cálculo de la factura en SQL',()=>analisisGuardados.guardarPreciosNV(id,async resultado=>{
+  const [precios,modulos,sueltos,previews]=await Promise.all([etapa('leer el consolidado y los coeficientes',()=>require('./services/listasPrecios').estado(undefined,{incluirFuentes:false})),actualizarMaestro(),actualizarSueltos(),analisisGuardados.datosNV(id)]);
   if(!modulos.disponible||!sueltos.disponible)throw Object.assign(new Error('No se pudieron actualizar los maestros de módulos y sueltos. El archivo de precios guardado se conserva.'),{status:422});
   const calculo = require('./services/preciosNV').prepararPreciosNV(resultado,precios,modulos,sueltos,previews);
-  if (!calculo.bloqueada) calculo.comprobacionMaestro = await require('./services/controlPreciosFactura').controlarPreciosFactura(calculo);
+  if (!calculo.bloqueada) calculo.comprobacionMaestro = await etapa('comparar los precios calculados contra Presea',()=>require('./services/controlPreciosFactura').controlarPreciosFactura(calculo));
   return calculo;
- });
+ }));
 }
 require('./config/entorno');
 const express = require('express');

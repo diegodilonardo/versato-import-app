@@ -40,7 +40,7 @@ async function guardarCatalogo(opciones, catalogo) {
 let procesando=false;
 function fechaLista(nombre){const m=String(nombre).match(/_(\d{2})_(\d{2})_(\d{2})(?:\.(?:xls|xlsx|xlsm))?$/i);if(!m)return null;const fecha='20'+m[3]+'-'+m[2]+'-'+m[1];return require('./coeficientesPrecios').fechaValida(fecha)?fecha:null;}
 async function fuentesDisponibles(carpeta=process.env.PRECIOS_DIR||path.join(__dirname,'../../precios')) {
- const [archivos, metadatos] = await Promise.all([fs.readdir(carpeta), leerJSON(path.join(carpeta, '.listas-fob.json'))]);
+ const [archivos, metadatos] = await Promise.all([fs.readdir(carpeta).catch(e=>{if(e.code==='ENOENT')return [];throw e;}), leerJSON(path.join(carpeta, '.listas-fob.json'))]);
  return archivos.filter(nombre => /\.(xlsx|xls|xlsm)$/i.test(nombre) && !nombre.startsWith('~$')).map(nombre => {
   const ficha = metadatos?.[nombre];
   return { nombre, etiqueta: ficha?.etiqueta || '', fechaManual: ficha?.fecha || '', fecha: ficha?.fecha || fechaLista(nombre) };
