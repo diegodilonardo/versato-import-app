@@ -48,7 +48,10 @@ function validar(entrada){
  return {nombre:entrada.nombre.trim(),configuracion:{...salida,tipo:c.tipo,separar:c.separar,buscar:(c.buscar||'').trim()}};
 }
 function guardar(entrada,archivo=ARCHIVO){
- const validada=validar(entrada),vistas=leer(archivo),id=entrada.id,i=id?vistas.findIndex(v=>v.id===id):-1;
+ const vistas=leer(archivo),vista=guardarEnVistas(entrada,vistas);escribir(vistas,archivo);return vista;
+}
+function guardarEnVistas(entrada,vistas){
+ const validada=validar(entrada),id=entrada.id,i=id?vistas.findIndex(v=>v.id===id):-1;
  if(id&&i<0)throw error('La vista ya no existe. Actualizá el listado.',404);
  if(id&&entrada.revision!==vistas[i].revision)throw error('La vista cambió en otra ventana. Volvé a cargarla antes de actualizarla.',409);
  if(vistas.some(v=>v.id!==id&&v.nombre.localeCompare(validada.nombre,'es',{sensitivity:'base'})===0))throw error('Ya hay una vista con ese nombre. Elegí otro nombre o actualizá la vista existente.',409);
@@ -58,7 +61,7 @@ function guardar(entrada,archivo=ARCHIVO){
   if(vistas.some(v=>v.id!==id&&v.programacion?.activa&&path.win32.normalize(v.programacion.destino).toLowerCase()===programacion.destino.toLowerCase()&&require('./grillaVendedores').nombreGrilla(v.nombre).toLowerCase()===nombre))throw error('Otra vista ya publica un archivo con ese nombre en la misma carpeta.');
  }
  const vista={...validada,programacion,id:id||randomUUID(),revision:randomUUID(),actualizada:new Date().toISOString()};
- if(i<0)vistas.push(vista);else vistas[i]=vista;escribir(vistas,archivo);return vista;
+ if(i<0)vistas.push(vista);else vistas[i]=vista;return vista;
 }
 function eliminar(id,revision,archivo=ARCHIVO){
  const vistas=leer(archivo),v=vistas.find(v=>v.id===id);
@@ -66,4 +69,9 @@ function eliminar(id,revision,archivo=ARCHIVO){
  if(v.revision!==revision)throw error('La vista cambió en otra ventana. Volvé a cargarla antes de eliminarla.',409);
  escribir(vistas.filter(v=>v.id!==id),archivo);
 }
-module.exports={leer,guardar,eliminar,validar,validarProgramacion};
+const usarSQL=archivo=>!archivo&&require('./sqlServer').habilitada();
+module.exports={validar,validarProgramacion,
+ leer:archivo=>usarSQL(archivo)?require('./documentosAppSQL').leer('vistas-stock',()=>leer()):leer(archivo),
+ guardar:(entrada,archivo)=>{if(!usarSQL(archivo))return guardar(entrada,archivo);let vista;return require('./documentosAppSQL').cambiar('vistas-stock',()=>leer(),vistas=>{vista=guardarEnVistas(entrada,vistas);return vistas;}).then(()=>vista);},
+ eliminar:(id,revision,archivo)=>{if(!usarSQL(archivo))return eliminar(id,revision,archivo);return require('./documentosAppSQL').cambiar('vistas-stock',()=>leer(),vistas=>{const v=vistas.find(v=>v.id===id);if(!v)throw error('La vista ya no existe.',404);if(v.revision!==revision)throw error('La vista cambió en otra ventana. Actualizá el listado.',409);return vistas.filter(v=>v.id!==id);});}
+};

@@ -21,7 +21,7 @@ function parsearClientes(texto){
  const detalleDomicilios=new Map([...direcciones].map(([cliente,mapa])=>[cliente,[...mapa].map(([codigo,textos])=>({codigo,direccion:[...textos].join(' / ')}))]));
  return{indice,nombresPorCliente:grupos,ambiguos,registros,sinNombre,domicilios,domiciliosAmbiguos,detalleDomicilios,opcionesDomicilio:new Map([...entregas].map(([c,v])=>[c,[...v]]))};
 }
-function actualizarClientes(){return actualizarMaestro({remoto:process.env.MAESTRO_CLIENTES_FTP_PATH||'/PRODUCTOS/MAESTROS_VERSATO/Clientes_Versato.TXT',destino:archivoClientes,parsear:parsearClientes,maxBytes:10*1024*1024});}
+async function actualizarClientes(){const r=await actualizarMaestro({remoto:process.env.MAESTRO_CLIENTES_FTP_PATH||'/PRODUCTOS/MAESTROS_VERSATO/Clientes_Versato.TXT',destino:archivoClientes,parsear:parsearClientes,maxBytes:10*1024*1024});if(r.disponible)await require('./clientesSQL').guardarLocal();return r;}
 function prepararInforme(resultado,previews,maestro){
  const packing=previews.PACKING_LIST?.registros||[],codigos=previews.CODIGOS_BARRA?.registros||[],errores=[];
  if(!maestro?.disponible)errores.push('No se pudo actualizar el maestro de clientes.');

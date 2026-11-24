@@ -593,3 +593,30 @@ Ajustar el nombre real del servicio, Python y -UrlComprobacion si no usa puerto 
 El script exige avance lineal y ausencia de cambios locales; conserva .env y data,
 instala dependencias, reinicia el servicio y comprueba HTTP. No crea el servicio,
 no hace migraciones SQL ni reset forzado. Ante fallas informa la versión anterior.
+
+### Configuración de grillas y maestro de clientes en SQL (migración 007)
+
+Antes de actualizar a esta versión, ejecutar `sql/007_configuracion_y_clientes.sql`
+en FC_VERSATO_APP con una cuenta administradora. La app no crea tablas automáticamente.
+Luego `node scripts/migrar-configuracion-sql.js` importa los archivos locales que
+falten en SQL. No sobrescribe documentos ya guardados o restaurados.
+
+Para recuperar las vistas de OTRA instalación, antes de la primera importación:
+
+```powershell
+node scripts/exportar-configuracion-sql.js C:\Respaldo\configuracion-versato.sql C:\versato-import-app\data
+```
+
+Ejecutar ese SQL en el servidor de destino con una cuenta administradora. Incluye
+estructura y datos locales disponibles, sin eliminar nada ni reemplazar claves
+existentes. El archivo contiene datos de clientes y rutas internas: conservarlo
+como respaldo privado, nunca publicarlo en Git. Revisar los destinos y programaciones
+antes de iniciar el servicio en el nuevo servidor.
+
+Se guardan en `versato.DocumentosApp`: vistas y programación, estado de ejecuciones
+y copia completa del maestro de clientes con domicilios/ambigüedades originales.
+Los clientes se consultan desde SQL; el botón de actualizar sigue descargando del
+FTP y reemplaza la copia SQL solo después de validar la descarga.
+Los flujos que exigen comprobar maestros actualizados desde FTP mantienen ese control.
+Un backup SQL incluye estos documentos. Las imágenes físicas, listas FOB originales
+y `.env` todavía necesitan su respaldo de archivos separado.

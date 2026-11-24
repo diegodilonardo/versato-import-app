@@ -12,8 +12,8 @@ test('programador publica, omite sin cambios y bloquea stock no actualizado',asy
  const dir=await fs.mkdtemp(path.join(os.tmpdir(),'cron-test-'));let ahora=new Date('2026-11-20T12:00:00Z'),cantidad=1,fallar=false,exports=0;
  const v={id:'v',revision:'1',nombre:'Prueba',configuracion:{depositos:['7'],marcas:['VIZZANO'],listas:['03'],tipo:'',separar:'si'},programacion:{activa:true,cron:'*/5 * * * *',destino:dir,soloCambios:true}};
  const s=crear({archivo:path.join(dir,'estado.json'),ahora:()=>ahora,vistas:{leer:()=>[v]},stock:{actualizar:async()=>{if(fallar)throw Error('FTP caído');},generar:async()=>({filas:[{cantidad}]})},exportador:{exportar:async()=>{exports++;return{nombre:'prueba.xlsx',buffer:Buffer.from(String(cantidad))};}}});
- try{await s.ciclo();s.ejecutar('v','1');await s.ciclo();assert.equal(exports,1);s.ejecutar('v','1');await s.ciclo();assert.equal(exports,1);assert.equal(s.estado().vistas[0].estado,'Sin cambios');
- cantidad=2;ahora=new Date('2026-11-20T12:10:00Z');fallar=true;await s.ciclo();assert.equal(exports,1);assert.equal(await fs.readFile(path.join(dir,'prueba.xlsx'),'utf8'),'1');assert.equal(s.estado().vistas[0].estado,'Error');
+ try{await s.ciclo();await s.ejecutar('v','1');await s.ciclo();assert.equal(exports,1);await s.ejecutar('v','1');await s.ciclo();assert.equal(exports,1);assert.equal((await s.estado()).vistas[0].estado,'Sin cambios');
+ cantidad=2;ahora=new Date('2026-11-20T12:10:00Z');fallar=true;await s.ciclo();assert.equal(exports,1);assert.equal(await fs.readFile(path.join(dir,'prueba.xlsx'),'utf8'),'1');assert.equal((await s.estado()).vistas[0].estado,'Error');
  ahora=new Date('2026-11-20T12:20:00Z');fallar=false;await s.ciclo();assert.equal(exports,2);assert.equal(await fs.readFile(path.join(dir,'prueba.xlsx'),'utf8'),'2');
  }finally{for(const f of await fs.readdir(dir))await fs.rm(path.join(dir,f));await fs.rmdir(dir);}
 });
@@ -22,9 +22,9 @@ test('ejecución única espera su hora, reintenta fallas y no se repite al reini
  const v={id:'unica',revision:'a',nombre:'Una vez',configuracion:{depositos:['7'],marcas:['VIZZANO'],listas:['03']},programacion:{activa:true,modo:'unica',ejecutarEn:'2026-11-20T12:01:00.000Z',cron:'*/5 * * * *',destino:dir,soloCambios:false}};
  const opciones={archivo:path.join(dir,'estado.json'),ahora:()=>ahora,vistas:{leer:()=>[v]},stock:{actualizar:async()=>{},generar:async()=>({filas:[]})},exportador:{exportar:async()=>{if(fallar)throw Error('Archivo ocupado');exports++;return{nombre:'unica.xlsx',buffer:Buffer.from('ok')};}}};
  const s=crear(opciones);let reiniciado;
- try{await s.ciclo();assert.equal(exports,0);ahora=new Date('2026-11-20T12:01:00Z');await s.ciclo();assert.equal(s.estado().vistas[0].estado,'Error');fallar=false;ahora=new Date('2026-11-20T12:02:00Z');await s.ciclo();assert.equal(exports,1);assert.equal(s.estado().vistas[0].estado,'Completada');assert.equal(s.estado().vistas[0].proxima,null);
+ try{await s.ciclo();assert.equal(exports,0);ahora=new Date('2026-11-20T12:01:00Z');await s.ciclo();assert.equal((await s.estado()).vistas[0].estado,'Error');fallar=false;ahora=new Date('2026-11-20T12:02:00Z');await s.ciclo();assert.equal(exports,1);assert.equal((await s.estado()).vistas[0].estado,'Completada');assert.equal((await s.estado()).vistas[0].proxima,null);
  ahora=new Date('2026-11-21T12:00:00Z');await s.ciclo();assert.equal(exports,1);
- reiniciado=crear(opciones);await reiniciado.iniciar();await new Promise(r=>setTimeout(r,40));await reiniciado.ciclo();assert.equal(exports,1);assert.equal(reiniciado.estado().vistas[0].proxima,null);
+ reiniciado=crear(opciones);await reiniciado.iniciar();await new Promise(r=>setTimeout(r,40));await reiniciado.ciclo();assert.equal(exports,1);assert.equal((await reiniciado.estado()).vistas[0].proxima,null);
  }finally{reiniciado?.detener();for(const f of await fs.readdir(dir))await fs.rm(path.join(dir,f));await fs.rmdir(dir);}
 });
 test('fecha única valida calendario y convierte hora Argentina',()=>{
@@ -49,5 +49,5 @@ test('cada generación consulta FTP aunque no hayan pasado diez minutos',async()
  const dir=await fs.mkdtemp(path.join(os.tmpdir(),'stock-fresco-'));let consultas=0;
  const v={id:'fresca',revision:'1',nombre:'Fresca',configuracion:{depositos:['7'],marcas:['VIZZANO'],listas:['03']},programacion:{activa:false,cron:'*/5 * * * *',destino:dir,soloCambios:false}};
  const s=crear({archivo:path.join(dir,'estado.json'),ahora:()=>new Date('2026-11-24T12:00:00Z'),vistas:{leer:()=>[v]},stock:{actualizar:async()=>{consultas++;},generar:async()=>({filas:[]})},exportador:{exportar:async()=>({nombre:'fresca.xlsx',buffer:Buffer.from('ok')})}});
- try{await s.ciclo();assert.equal(consultas,1);s.ejecutar(v.id,v.revision);await s.ciclo();assert.equal(consultas,2);s.ejecutar(v.id,v.revision);await s.ciclo();assert.equal(consultas,3);}finally{for(const f of await fs.readdir(dir))await fs.rm(path.join(dir,f));await fs.rmdir(dir);}
+ try{await s.ciclo();assert.equal(consultas,1);await s.ejecutar(v.id,v.revision);await s.ciclo();assert.equal(consultas,2);await s.ejecutar(v.id,v.revision);await s.ciclo();assert.equal(consultas,3);}finally{for(const f of await fs.readdir(dir))await fs.rm(path.join(dir,f));await fs.rmdir(dir);}
 });

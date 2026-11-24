@@ -522,12 +522,12 @@ app.get('/fotos',(req,res)=>res.sendFile('fotos.html',{root:path.join(__dirname,
 app.get('/precios',(req,res)=>res.sendFile('precios.html',{root:path.join(__dirname,'../public')}));
 app.get('/consultas',(req,res)=>res.sendFile('consultas.html',{root:path.join(__dirname,'../public')}));
 app.get('/stock', (req,res)=>res.sendFile('stock.html',{root:path.join(__dirname,'../public')}));
-app.get('/api/stock/vistas',(req,res,next)=>{try{res.set('Cache-Control','no-store').json({vistas:require('./services/vistasStock').leer()});}catch(e){next(e);}});
-app.get('/api/stock/programador',(req,res,next)=>{try{res.set('Cache-Control','no-store').json(require('./services/programadorGrillas').estado());}catch(e){next(e);}});
-app.post('/api/stock/vistas/:id/programacion',express.json({limit:'8kb'}),(req,res,next)=>{try{verificarOrigenCorreo(req);const servicio=require('./services/vistasStock'),v=servicio.leer().find(v=>v.id===req.params.id);if(!v)throw Object.assign(Error('La vista ya no existe.'),{status:404});res.json(servicio.guardar({...v,revision:req.body?.revision,programacion:req.body?.programacion}));}catch(e){next(e);}});
-app.post('/api/stock/vistas/:id/ejecutar',express.json({limit:'4kb'}),(req,res,next)=>{try{verificarOrigenCorreo(req);res.status(202).json(require('./services/programadorGrillas').ejecutar(req.params.id,req.body?.revision));}catch(e){next(e);}});
-app.post('/api/stock/vistas',express.json({limit:'64kb'}),(req,res,next)=>{try{verificarOrigenCorreo(req);res.set('Cache-Control','no-store').json(require('./services/vistasStock').guardar(req.body));}catch(e){next(e);}});
-app.delete('/api/stock/vistas/:id',express.json({limit:'4kb'}),(req,res,next)=>{try{verificarOrigenCorreo(req);require('./services/vistasStock').eliminar(req.params.id,req.body?.revision);res.json({eliminada:true});}catch(e){next(e);}});
+app.get('/api/stock/vistas',async(req,res,next)=>{try{res.set('Cache-Control','no-store').json({vistas:await require('./services/vistasStock').leer()});}catch(e){next(e);}});
+app.get('/api/stock/programador',async(req,res,next)=>{try{res.set('Cache-Control','no-store').json(await require('./services/programadorGrillas').estado());}catch(e){next(e);}});
+app.post('/api/stock/vistas/:id/programacion',express.json({limit:'8kb'}),async(req,res,next)=>{try{verificarOrigenCorreo(req);const servicio=require('./services/vistasStock'),v=(await servicio.leer()).find(v=>v.id===req.params.id);if(!v)throw Object.assign(Error('La vista ya no existe.'),{status:404});res.json(await servicio.guardar({...v,revision:req.body?.revision,programacion:req.body?.programacion}));}catch(e){next(e);}});
+app.post('/api/stock/vistas/:id/ejecutar',express.json({limit:'4kb'}),async(req,res,next)=>{try{verificarOrigenCorreo(req);res.status(202).json(await require('./services/programadorGrillas').ejecutar(req.params.id,req.body?.revision));}catch(e){next(e);}});
+app.post('/api/stock/vistas',express.json({limit:'64kb'}),async(req,res,next)=>{try{verificarOrigenCorreo(req);res.set('Cache-Control','no-store').json(await require('./services/vistasStock').guardar(req.body));}catch(e){next(e);}});
+app.delete('/api/stock/vistas/:id',express.json({limit:'4kb'}),async(req,res,next)=>{try{verificarOrigenCorreo(req);await require('./services/vistasStock').eliminar(req.params.id,req.body?.revision);res.json({eliminada:true});}catch(e){next(e);}});
 app.get('/api/stock', async(req,res,next)=>{try{res.set('Cache-Control','no-store').json(await require('./services/stock').catalogo());}catch(e){next(e);}});
 app.post('/api/stock/actualizar', async(req,res,next)=>{try{verificarOrigenCorreo(req);res.set('Cache-Control','no-store').json(await require('./services/stock').actualizar());}catch(e){next(e);}});
 app.get('/api/stock/grilla', async(req,res,next)=>{try{
@@ -552,16 +552,7 @@ app.post('/api/clientes/actualizar', async (req, res, next) => {
 });
 app.get('/api/clientes', async (req, res, next) => {
  try {
-  const { archivoClientes, parsearClientes } = require('./services/correoFactura');
-  const fs = require('node:fs/promises');
-  const archivo = await fs.open(archivoClientes, 'r');
-  let buffer, fecha;
-  try { fecha = (await archivo.stat()).mtime; buffer = await archivo.readFile(); }
-  finally { await archivo.close(); }
-  let contenido;
-  try { contenido = new TextDecoder('utf-8', { fatal: true }).decode(buffer); }
-  catch { contenido = new TextDecoder('windows-1252').decode(buffer); }
-  const maestro = parsearClientes(contenido);
+  const {maestro,fecha}=await require('./services/clientesSQL').leer();
   const normalizar = valor => valor.normalize('NFD').replace(/\p{M}/gu, '').toUpperCase();
   const buscar = typeof req.query.buscar === 'string' ? normalizar(req.query.buscar.trim().slice(0,100)) : '';
   const pagina = Number(req.query.pagina ?? 0);

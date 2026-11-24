@@ -19,7 +19,7 @@ mock('repositorioSQL',{reservarModulos:async(p,m,tx)=>{assert.equal(tx,'transacc
  imagen:async(id,producto)=>fotosGuardadas.get(id)?.find(f=>f.PRODUCTO===producto),
  obtener:async id=>saved.get(id),listar:async()=>[...saved.values()]
 })});
-const app=require('../src/app');
+mock('clientesSQL',{guardarLocal:async()=>{}});const app=require('../src/app');
 test('Analizar no guarda ni reserva; aceptación explícita única, origen y reintentos',async()=>{
  const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));const base='http://127.0.0.1:'+server.address().port;
  try{
