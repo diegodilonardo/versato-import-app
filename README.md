@@ -620,3 +620,37 @@ FTP y reemplaza la copia SQL solo después de validar la descarga.
 Los flujos que exigen comprobar maestros actualizados desde FTP mantienen ese control.
 Un backup SQL incluye estos documentos. Las imágenes físicas, listas FOB originales
 y `.env` todavía necesitan su respaldo de archivos separado.
+
+### Backup completo del servidor
+
+`scripts/backup-completo.ps1` reúne SQL + `.env` + `data` (incluido el repositorio
+de imágenes) + listas FOB de PRECIOS_DIR + plantilla de vendedores.
+Ejecutarlo como administrador. Usa autenticación Windows de sqlcmd, no la contraseña
+de la app. Esa cuenta debe tener permisos de BACKUP DATABASE y RESTORE VERIFYONLY.
+
+```powershell
+.\scripts\backup-completo.ps1 -Servicio ProcesosVersatoFC -DirectorioSql "RUTA_ACCESIBLE_POR_SQL_Y_POWERSHELL"
+```
+
+`-DirectorioSql` debe ser una carpeta existente donde la cuenta del servicio SQL
+pueda escribir y la cuenta de PowerShell pueda leer. SQL interpreta el destino en
+SU servidor. Si SQL está en otro equipo, usar un recurso compartido autorizado,
+accesible desde ambos. No pasar una ruta C: de otro equipo como si fuera local.
+`-Instancia` permite cambiar el servidor SQL; si no se indica, lee SQL_SERVER/SQL_PORT
+del .env sin imprimir credenciales. La base predeterminada es FC_VERSATO_APP.
+
+La carpeta final queda en C:\Backups\Versato\Versato_FECHA_ID (cambiable con -Destino).
+Su acceso queda limitado a administradores y SYSTEM porque incluye .env.
+El servicio se detiene durante la copia y se reinicia en finally. SQL se respalda
+con COPY_ONLY y CHECKSUM y se comprueba con RESTORE VERIFYONLY; no altera la base
+para diferenciales existentes. Se comparan hashes de los archivos copiados.
+
+Solo una carpeta con COMPLETO.txt representa una ejecución terminada correctamente.
+Incluye manifiesto.json con versión Git, tamaños y SHA256; si falla, queda ERROR.txt.
+No elimina respaldos anteriores ni configura horarios o recursos compartidos.
+Guardar una segunda copia en la ubicación de backups corporativa autorizada.
+
+Restauración: detener la app, restaurar el .bak con SSMS, recuperar .env, data y
+precios (en PRECIOS_DIR si era externo), y usar la versión Git indicada en el
+manifiesto. Ajustar rutas/credenciales de la nueva máquina antes de iniciar el servicio.
+RESTORE VERIFYONLY y los hashes no reemplazan una prueba periódica de restauración.
