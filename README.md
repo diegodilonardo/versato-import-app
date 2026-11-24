@@ -548,56 +548,48 @@ La grilla de modelos muestra FOB analizados agrupados por valor, con la cantidad
 
 ## Publicación por Git y actualización del servidor
 
-Facturas Versato tiene un repositorio propio, independiente de Productos:
-`C:\repositorios-git\versato-import-app.git` (repositorio bare en NBK-SIS-05).
-Rama: `apps/facturas-versato`.
+Repositorio previsto: https://github.com/diegodilonardo/versato-import-app.git
+Rama: apps/facturas-versato. Crear el repositorio privado y vacío antes de publicar.
+Este es el mismo circuito de App Productos: desarrollo publica en GitHub y el
+servidor descarga desde GitHub. No requiere conexión entre servidor y notebook.
 
-En desarrollo, publicar desde esta carpeta:
+En desarrollo, configurar origin una sola vez:
+
+```powershell
+git remote set-url origin https://github.com/diegodilonardo/versato-import-app.git
+git push --set-upstream origin apps/facturas-versato
+```
+
+Para publicar cambios posteriores:
 
 ```powershell
 .\scripts\publicar-dev.ps1 -Mensaje "Descripcion del cambio"
 ```
 
 El script muestra los archivos, ejecuta las pruebas y pide SI antes de commit/push.
-Conserva fuera de Git .env, data (configuraciones, vistas, programación y fotos),
-listas originales, dependencias y salidas. Incluye la plantilla de vendedores.
+Excluye .env, data (vistas, programación, fotos), listas originales y salidas.
+Incluye la plantilla de vendedores. Mantener respaldos separados de .env, data y SQL.
 
-En el servidor, comprobar primero acceso al repositorio de esta PC:
-
-```powershell
-Test-Path "\\NBK-SIS-05\C$\repositorios-git\versato-import-app.git\HEAD"
-```
-
-La ruta administrativa C$ requiere permisos de acceso de Windows. Si no está
-habilitada, usar una carpeta compartida autorizada que apunte al mismo repositorio.
-No se abre ni modifica ningún recurso compartido desde los scripts.
-
-Primera instalación Git: clonar en una carpeta nueva (no encima de una instalación existente):
+Primera instalación Git en el servidor: clonar en una carpeta NUEVA para conservar
+la instalación existente intacta:
 
 ```powershell
-git clone --branch apps/facturas-versato --single-branch "\\NBK-SIS-05\C$\repositorios-git\versato-import-app.git" C:\versato-import-app-nueva
+git clone --branch apps/facturas-versato --single-branch https://github.com/diegodilonardo/versato-import-app.git C:\versato-import-app-nueva
 ```
 
-Antes de sustituir la instalación existente, conservar una copia de .env y data,
-preparar SQL/FTP, instalar dependencias y configurar el servicio. El script de
-actualización NO realiza esta migración inicial ni crea el servicio.
-Configurar STOCK_EXCEL_PYTHON con un python.exe del servidor con Pillow instalado.
+Luego preparar .env, data, dependencias y servicio antes de reemplazar la instalación.
+Configurar STOCK_EXCEL_PYTHON con el python.exe del servidor con Pillow instalado.
+Para un repositorio privado, Git debe estar autenticado tanto en desarrollo como en
+el servidor. No guardar tokens ni contraseñas en scripts o URLs.
 
-Para una instalación Git ya preparada en C:\versato-import-app, ejecutar como administrador:
+Actualizaciones posteriores, desde el servidor y como administrador, cuando la
+instalación Git ya esté en C:\versato-import-app:
 
 ```powershell
 .\scripts\actualizar-produccion.ps1 -Servicio VersatoImportApp -Python C:\Python\python.exe
 ```
 
-Ajustar el servicio, Python y -UrlComprobacion si el puerto no es 3100.
-El script usa el origin de ESA instalación; debe apuntar al repositorio propio de Facturas.
-Si una instalación anterior apuntaba al repositorio de Productos, corregir antes:
-
-```powershell
-git -C C:\versato-import-app remote set-url origin "\\NBK-SIS-05\C$\repositorios-git\versato-import-app.git"
-```
-
-El actualizador exige avance lineal y ausencia de cambios locales, conserva .env y data,
-instala dependencias con npm ci, reinicia el servicio y verifica la respuesta HTTP.
-No hace reset forzado, clean ni migraciones SQL automáticas. Ante fallas informa
-la versión anterior y exige revisar el error antes de reiniciar o revertir.
+Ajustar el nombre real del servicio, Python y -UrlComprobacion si no usa puerto 3100.
+El script exige avance lineal y ausencia de cambios locales; conserva .env y data,
+instala dependencias, reinicia el servicio y comprueba HTTP. No crea el servicio,
+no hace migraciones SQL ni reset forzado. Ante fallas informa la versión anterior.

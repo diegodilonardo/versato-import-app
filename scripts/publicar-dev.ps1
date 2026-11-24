@@ -1,6 +1,6 @@
 ﻿param(
  [Parameter(Mandatory=$true)][string]$Mensaje,
- [string]$Repositorio='file:///C:/repositorios-git/versato-import-app.git',
+ [string]$Repositorio='https://github.com/diegodilonardo/versato-import-app.git',
  [string]$Rama='apps/facturas-versato',
  [switch]$Inicializar
 )
