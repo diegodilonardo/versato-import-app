@@ -1,0 +1,24 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fotos · Versato</title><link rel="stylesheet" href="/styles.css"><script src="/fotos.js?v=20261120-repo" defer></script><script src="/sincronizarFotos.js?v=20261124-eliminar-2" defer></script></head><body>
+<header><a href="/importaciones" class="brand">versato<span> / import</span></a><nav aria-label="Navegación principal"><a href="/importaciones">Importaciones</a><a href="/historial">Historial</a><a href="/consultas">Consultas</a><a href="/clientes">Maestro de clientes</a><a href="/stock">Stock</a><a href="/precios">Precios</a><a href="/fotos" aria-current="page">Fotos</a><a href="/logicas" target="_blank" rel="noopener">Lógicas y controles ↗</a></nav><span class="badge">Local</span></header>
+<main><p class="eyebrow">CATÁLOGO DE IMÁGENES</p><h1>Todas las fotos, en un lugar.</h1><p class="intro">Buscá un modelo entre las fotos sincronizadas y las incorporadas con las facturas. La búsqueda se actualiza mientras escribís. Podés usar puntos o guiones y ver sus variantes de color.</p>
+<section class="card photo-sync">
+ <h2>Ubicaciones y sincronización</h2>
+ <p>Agregá carpetas locales o de red. Las fotos JPG/PNG deben tener el nombre modelo-color, por ejemplo 1122-806-7286-15745.jpg. La prioridad menor se utiliza primero; a igualdad, la primera ubicación guardada.</p>
+ <form id="foto-ubicacion-form" class="stock-filtros">
+  <label>Nombre<input id="foto-ubicacion-nombre" required maxlength="120" placeholder="Fotos comerciales"></label>
+  <label class="photo-source-path">Carpeta de origen<input id="foto-ubicacion-ruta" required maxlength="1024" placeholder="C:\Fotos o \\servidor\carpeta"></label>
+  <label>Prioridad<input id="foto-ubicacion-prioridad" type="number" min="1" max="9999" value="100" required></label>
+  <label class="photo-sync-check"><input id="foto-ubicacion-sub" type="checkbox"> Incluir subcarpetas</label>
+  <label class="photo-sync-check"><input id="foto-ubicacion-activa" type="checkbox" checked> Activa</label>
+  <button id="foto-ubicacion-guardar" type="submit">Agregar ubicación</button><button id="foto-ubicacion-cancelar" type="button" class="secondary" hidden>Cancelar edición</button>
+ </form>
+ <p id="foto-ubicaciones-estado" role="status"></p>
+ <div class="table-scroll"><table><thead><tr><th>Nombre</th><th>Ubicación</th><th>Prioridad</th><th>Última sincronización</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="foto-ubicaciones-filas"></tbody></table></div>
+ <div class="price-actions"><button id="foto-sincronizar" type="button" disabled>Sincronizar imágenes</button><button id="foto-ubicaciones-recargar" type="button" class="secondary">Actualizar listado</button></div>
+ <progress id="foto-sync-progreso" aria-label="Sincronización de imágenes" hidden></progress>
+ <p id="foto-sync-estado" role="status"></p><p id="foto-sync-resumen"></p>
+ <details id="foto-sync-detalles" hidden><summary>Ver observaciones</summary><ul id="foto-sync-errores"></ul></details>
+ <p class="muted" id="foto-repositorio">Las imágenes copiadas quedan disponibles aunque la carpeta de origen se desconecte. Desactivar una ubicación no elimina las fotos ya guardadas.</p>
+</section>
+<section class="card"><form id="buscar-fotos" class="photo-catalog-search"><label>Modelo o producto<input id="modelo" type="search" maxlength="80" placeholder="1122.800.7286 o 1122-800-7286" autocomplete="off"></label><button type="submit" id="buscar">Buscar fotos</button><button type="button" id="todas" class="secondary">Ver todas</button></form><p class="note">Una foto por producto y color. Las imágenes reutilizadas en varias facturas se muestran una sola vez. Se muestran 40 fotos por página.</p><p id="estado-fotos" role="status" aria-live="polite">Cargando fotos…</p><nav id="paginacion-superior" class="photo-pagination" aria-label="Páginas de fotos"></nav><div id="catalogo-fotos" class="catalog-photos"></div><nav id="paginacion-inferior" class="photo-pagination" aria-label="Páginas de fotos al pie"></nav></section>
+<dialog id="visor" class="image-dialog"><button type="button" id="cerrar">Cerrar imagen ×</button><img id="imagen-ampliada" alt=""><p id="producto-ampliado"></p></dialog><footer>VERSATO <span>Fotos incorporadas</span></footer></main></body></html>

@@ -1,0 +1,36 @@
+{
+  "version": 3,
+  "language": 0,
+  "fields": [
+    {
+      "name": "NRO",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "DESCR",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "LINEA",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "ABREVIADO",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "SIZE_RUN",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    }
+  ]
+}

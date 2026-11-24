@@ -1,0 +1,90 @@
+{
+  "version": 3,
+  "language": 0,
+  "fields": [
+    {
+      "name": "ARTICULO",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "FORMULA",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "LOTEOPTIMO",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "DIAS_PROCE",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "CA_ARTICUL",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "DETALLE",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "PROVEEDOR",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "OBLIGATORI",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "RECEP_AUTO",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "DEPO_PROXI",
+      "type": "C",
+      "length": 10,
+      "decimals": 0
+    },
+    {
+      "name": "FRECUPROCE",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "AUTOMATICA",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "PRODMINIMA",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "DESARME",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    }
+  ]
+}

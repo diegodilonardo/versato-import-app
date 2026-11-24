@@ -1,0 +1,42 @@
+{
+  "version": 3,
+  "language": 0,
+  "fields": [
+    {
+      "name": "CODIGO",
+      "type": "N",
+      "length": 20,
+      "decimals": 0
+    },
+    {
+      "name": "LISTAPRE",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "PRECIO",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "VERSION",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "OBSERVACIO",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "COD_ALFA",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    }
+  ]
+}

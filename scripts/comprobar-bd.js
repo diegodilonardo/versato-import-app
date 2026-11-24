@@ -1,0 +1,1 @@
+require('../src/config/entorno');const bd=require('../src/services/sqlServer');bd.verificar().then(r=>console.log(JSON.stringify(r))).catch(()=>{console.error('No se pudo conectar con la base configurada.');process.exitCode=1;}).finally(()=>bd.cerrar());

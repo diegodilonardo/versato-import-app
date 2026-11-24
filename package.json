@@ -1,0 +1,23 @@
+{
+  "name": "versato-import-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Carga y detección de archivos Versato",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node --watch-path=src src/server.js",
+    "start": "node src/server.js",
+    "test": "node --test",
+    "db:init": "node scripts/iniciar-bd.js",
+    "db:check": "node scripts/comprobar-bd.js"
+  },
+  "dependencies": {
+    "basic-ftp": "^6.2.3",
+    "express": "^5.1.0",
+    "mssql": "^12.7.13",
+    "multer": "^2.0.2",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  }
+}

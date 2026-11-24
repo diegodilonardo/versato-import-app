@@ -1,0 +1,126 @@
+{
+  "version": 3,
+  "language": 0,
+  "fields": [
+    {
+      "name": "NUMERO",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "CLIENTE",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "CANTIDAD",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "CODIGO",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "COD_ALFA",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "DOMI_ENTRE",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "FECHA",
+      "type": "D",
+      "length": 8,
+      "decimals": 0
+    },
+    {
+      "name": "FECHA_ENT2",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "MONEDA",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "COTIZACION",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "EMPRESA",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "REFERENCIA",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "OBS",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "LISTAPRE",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "VER_LISTA",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "PRECIO",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "FECHA_ENT",
+      "type": "D",
+      "length": 8,
+      "decimals": 0
+    },
+    {
+      "name": "DTO2",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "FP",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "MARCA",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    }
+  ]
+}

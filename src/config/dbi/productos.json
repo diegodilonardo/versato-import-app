@@ -1,0 +1,216 @@
+{
+  "version": 3,
+  "language": 0,
+  "fields": [
+    {
+      "name": "CODIGO",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "DETALLE",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "RUBRO",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "NIVEL",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "FECHA_ALTA",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "COD_ALFA",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "COD_ALFABA",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "COD_ALFAB1",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "RUBRO_FACT",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "MARCA",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "COD_SUBG",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "COD_TEM",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "COD_GRUPOC",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "SEXO",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "CLASIFIC",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "COLORC",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "DCLASIFIC",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "DCOLORC",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "DET_LINEA",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "DET_ORIGEN",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "DGRUPO",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "DMARCA",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "DMODC",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "DSUBG",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "DTALLC",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "LINEA",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "MODC",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "ORIG_PRO",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "RUBROS",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "TALLC",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "DCOD_TEM",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "PARES",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "COD_ANO",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    },
+    {
+      "name": "PAIS",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "NOMB_ART",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    }
+  ]
+}

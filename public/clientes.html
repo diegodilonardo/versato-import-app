@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <title>Maestro de clientes · Versato</title>
+ <link rel="stylesheet" href="/styles.css">
+ <script src="/clientes.js" defer></script>
+</head>
+<body>
+<header><a href="/importaciones" class="brand">versato<span> / import</span></a><nav aria-label="Navegación principal"><a href="/importaciones">Importaciones</a><a href="/historial">Historial</a><a href="/consultas">Consultas</a><a href="/clientes" aria-current="page">Maestro de clientes</a><a href="/stock">Stock</a><a href="/precios">Precios</a><a href="/fotos">Fotos</a><a href="/logicas" target="_blank" rel="noopener">Lógicas y controles ↗</a></nav><span class="badge">Local</span></header>
+<main>
+ <h1>Maestro de clientes</h1>
+ <section class="card">
+  <div class="price-actions">
+   <label class="price-search">Código o nombre<input id="buscar-cliente" type="search" maxlength="100" placeholder="13950 o nombre del cliente"></label>
+   <button id="actualizar-clientes" type="button">Actualizar desde FTP</button>
+  </div>
+  <p id="estado-clientes" role="status"></p>
+  <div class="table-scroll">
+   <table>
+    <thead><tr><th scope="col">Código</th><th scope="col">Cliente</th><th scope="col">Domicilios de entrega</th></tr></thead>
+    <tbody id="filas-clientes"></tbody>
+   </table>
+  </div>
+  <div class="query-pagination">
+   <button id="clientes-anterior" type="button" disabled>Anterior</button>
+   <span id="clientes-pagina"></span>
+   <button id="clientes-siguiente" type="button" disabled>Siguiente</button>
+  </div>
+ </section>
+</main>
+</body>
+</html>

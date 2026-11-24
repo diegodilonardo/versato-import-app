@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Analizar factura · Versato</title><link rel="stylesheet" href="/styles.css"><script src="/organizarFactura.js" defer></script><script src="/controlPedidos.js" defer></script><script src="/app.js" defer></script></head>
+<body>
+<header><a href="/importaciones" class="brand">versato<span> / import</span></a><nav aria-label="Navegación principal"><a href="/importaciones" aria-current="page">Importaciones</a><a href="/historial">Historial</a><a href="/consultas">Consultas</a><a href="/clientes">Maestro de clientes</a><a href="/stock">Stock</a><a href="/precios">Precios</a><a href="/fotos">Fotos</a><a href="/logicas" target="_blank" rel="noopener" title="Abrir la guía en otra pestaña sin perder el análisis">Lógicas y controles ↗</a></nav><span class="badge">Local</span></header>
+<main>
+<p class="eyebrow">IMPORTACIONES</p><h1>Una factura. Todos sus archivos juntos.</h1>
+<p class="intro">Cargá Packing List, Códigos de Barra y EAN. Podés sumar la Factura para controlar cantidades e importes. Detectamos cada formato y reunimos todas las revisiones en un solo análisis.</p>
+<details id="invoice-upload" class="invoice-upload" open><summary>Cargar archivos de una factura</summary><div class="layout">
+<section class="card"><h2>Analizar factura</h2>
+<form id="cross-form"><label class="drop" id="cross-drop" for="cross-files"><span class="plus" aria-hidden="true">＋</span><strong>Seleccioná los tres archivos y la Factura opcional</strong><span>.xls, .xlsx o .xlsm · hasta 60 MB cada uno</span><input id="cross-files" type="file" accept=".xls,.xlsx,.xlsm" multiple required></label>
+<details class="photo-upload"><summary>Agregar fotos de productos (opcional)</summary><label for="product-photos">Seleccioná las imágenes de esta factura</label><input id="product-photos" type="file" accept=".jpg,.jpeg,.png,.webp" multiple><p id="photo-selection" class="note" role="status">Sin fotos seleccionadas.</p><p class="note">Nombre: 1122-828-7286-15745.jpg. Una foto por producto, compartida por sus módulos y sueltos. Las fotos ya guardadas se cargan automáticamente; solo necesitás agregar las faltantes. Hasta 300 fotos, 5 MB cada una y 150 MB en total. Se guardan únicamente al aceptar el análisis.</p></details>
+<p id="cross-selection" class="filename" aria-live="polite">Ningún archivo seleccionado</p><button id="cross-submit" type="submit">Analizar factura ↗</button></form>
+<p class="note">Admite reportes HTML guardados como .xls. Primero revisá la vista previa. Solo al aceptar y guardar se registran los archivos, sus filas y el análisis en la base de datos.</p></section>
+<aside class="card guide"><p class="eyebrow">TODO EN UN ANÁLISIS</p><ol><li><strong>Cargá los archivos de la factura</strong><p>En cualquier orden, sin cambiar sus nombres.</p></li><li><strong>Revisá la factura</strong><p>Validaciones, EAN agrupados, cantidades y productos con su maestro.</p></li><li><strong>Aceptá, guardá y descargá</strong><p>Confirmá el análisis para registrarlo y habilitar los archivos de Presea.</p></li></ol></aside>
+</div></details>
+<p id="cross-status" role="status" aria-live="polite"></p><section id="cross-result" class="card" hidden></section>
+<details class="card" style="margin-top:28px"><summary>Revisar un archivo individual (opcional)</summary><h2 style="margin-top:24px">Detectar archivo</h2><p class="muted">Para consultar un solo Packing List, Códigos de Barra o EAN.</p>
+<form id="upload"><label class="drop" id="drop" for="archivo"><strong>Seleccioná o arrastrá un archivo</strong><span>.xls, .xlsx o .xlsm · hasta 60 MB</span><input id="archivo" name="archivo" type="file" accept=".xls,.xlsx,.xlsm" required></label><p id="selection" class="filename">Ningún archivo seleccionado</p><button id="submit" type="submit">Revisar archivo</button></form>
+<p id="status" role="status" aria-live="polite"></p><section id="result" hidden></section></details>
+<footer>VERSATO <span>Análisis de facturas</span></footer>
+</main></body></html>

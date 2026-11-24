@@ -1,0 +1,4 @@
+const {test}=require('node:test'),assert=require('node:assert/strict');const {crearComparador}=require('../src/services/maestroPrecios');
+const precios={filas:[{cod_alfa:'ALFA',LISTAPRE:'03',VERSION:'1',PRECIO:120}]};
+test('verifica existencia por alfa, lista y versión sin sustituir ni exigir el precio calculado',()=>{for(const importe of ['120.0000','99.5000']){const c=crearComparador(precios);c.linea('CALZADO|MARCA|900|ALFA|3|1|'+importe);assert.equal(c.resultado().valida,true);assert.equal(precios.filas[0].PRECIO,120);}});
+test('detecta productos sin precio o sin lista y versión requeridas',()=>{for(const [linea,estado]of [['C|M|1|OTRO|03|1|120.00','NO_ENCONTRADO'],['C|M|1|ALFA|03|2|120.00','NO_ENCONTRADO'],['C|M|1|ALFA|03|1|0.00','SIN_PRECIO']]){const c=crearComparador(precios);c.linea(linea);assert.equal(c.resultado().filas[0].estado,estado);assert.equal(c.resultado().valida,false);}assert.throws(()=>crearComparador(precios).linea('mal|formato'));});

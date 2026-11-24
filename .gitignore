@@ -1,0 +1,14 @@
+node_modules/
+.env
+*.log
+data/*.TXT
+data/*.txt
+data/
+outputs/
+salidas/
+tmp/
+__pycache__/
+*.pyc
+*.DBI
+*.DBF
+*.zip

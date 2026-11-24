@@ -1,0 +1,21 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const { resumenPresea } = require('../src/services/resumenPresea');
+test('Resumen consolida cajas una vez por fila y conserva marca y descripciones', () => {
+  const productos = { listado: [{ PRODUCTO:'1.2.3.4', STYLE:'1.2', MATERIAL:'3', COLOR:'4', estado:'MAESTRO_ENCONTRADO' }], asignaciones: [{ PRODUCTO:'1.2.3.4', estado:'ENCONTRADO', CODIGO:'001', MODC:'VZ1' }] };
+  const previews = { PACKING_LIST: { registros: [{ errores:[], datos:{STYLE:'1.2',MATERIAL_CODE:'3',COLOR_CODE:'4',BOXES:'2',MARCA:'Marca',DESCRIPCION:'Zapato',DESCRIPCION_MATERIAL:'Cuero',DESCRIPCION_COLOR:'Negro'} }] }, CODIGOS_BARRA:{ registros:[1,2].map(() => ({ errores:[],datos:{LINHA:'1',REFERENCIA:'2',CABEDAL:'3',COR:'4'} })) }, EAN:{registros:[]} };
+  const p = resumenPresea(productos, previews, {estado:'COMPLETO'});
+  assert.equal(p.listado[0].cajasPacking,2); assert.equal(p.listado[0].cajasCodigos,2);
+  assert.deepEqual(p.listado[0].descripciones,['Zapato']); assert.equal(p.presea.encontrados,1);
+  assert.equal(p.listado[0].preparacion,'EXISTENTE_EN_MAESTRO');
+  assert.equal(p.resumenCoincidencias.total.total,1);assert.equal(p.resumenCoincidencias.total.encontrados,1);
+  p.asignaciones[0].estado='SIN_COINCIDENCIA';
+  resumenPresea(p, previews, {estado:'COMPLETO'});
+  assert.equal(p.presea.sinCoincidencia,1); assert.equal(p.listado[0].preparacion,'SIN_COINCIDENCIA_PARA_EVALUAR');
+  assert.equal(p.resumenCoincidencias.total.noEncontrados,1);
+  resumenPresea(p, previews, {estado:'PARCIAL'});
+  assert.equal(p.listado[0].preparacion,'REVISAR');
+  p.maestro={disponible:false};p.asignaciones[0].coincidencia='PENDIENTE';
+  resumenPresea(p,previews,{estado:'COMPLETO'});
+  assert.equal(p.presea.sinCoincidencia,0);assert.equal(p.presea.pendientesMaestro,1);assert.equal(p.listado[0].preparacion,'REVISAR');
+});

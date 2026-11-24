@@ -1,0 +1,66 @@
+{
+  "version": 3,
+  "language": 0,
+  "fields": [
+    {
+      "name": "CODIGO",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "BR_CODCOLO",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "BR_CODMATE",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "BR_COLOR",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "BR_MATERIA",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "BR_STYLE",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "BR_NAME",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "BR_SIZERUN",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "DET_CURVA",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "COD_ALFA",
+      "type": "C",
+      "length": 100,
+      "decimals": 0
+    }
+  ]
+}

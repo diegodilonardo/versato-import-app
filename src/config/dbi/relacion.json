@@ -1,0 +1,126 @@
+{
+  "version": 3,
+  "language": 0,
+  "fields": [
+    {
+      "name": "ARTICULO",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "CANTIDAD",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "INSUMO",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "CA_ARTICUL",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "CA_INSUMO",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "UNIDADES",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "DETAARTI",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "DETAINSU",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "MEDIDAARTI",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "MEDIDAINSU",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "ALTERNATIV",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "FORMULA",
+      "type": "C",
+      "length": 254,
+      "decimals": 0
+    },
+    {
+      "name": "TOMA_SERIE",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "CONSUFIJO",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "INSUPRINCI",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "CRITICO",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "OPCIONAL",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "NUM_APER",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "CANT_FIJA",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    },
+    {
+      "name": "TOLERANCIA",
+      "type": "N",
+      "length": 20,
+      "decimals": 5
+    }
+  ]
+}
