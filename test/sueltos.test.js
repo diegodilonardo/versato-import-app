@@ -15,3 +15,18 @@ test('EAN existente selecciona el MODC máximo sin generar otra alta',()=>{const
 test('Sueltos nuevos toman el MODC histórico máximo del mismo producto',()=>{const m={...S.parsearSueltos(linea('7900294899294').replaceAll('V08181','V08199')),disponible:true};assert.equal(generar(fixture(),m).sueltos.filas[0].MODC,'V08199');});
 test('EAN duplicado toma MAX de cada campo independientemente y no genera alta',()=>{const a=linea('7900294899270','999'),b=linea('7900294899270','1000').replaceAll('V08181','V08190');const campos=a.split('|');campos[8]='9911V0818110036';campos[6]='31/12/2024';const otros=b.split('|');otros[6]='01/01/2025';const maestro={...S.parsearSueltos(campos.join('|')+'\n'+otros.join('|')),disponible:true},p=generar(fixture(),maestro),r=p.sueltos.filas[0];assert.equal(r.estado,'ENCONTRADO');assert.equal(r.datosMaestro.CODIGO,'1000');assert.equal(r.datosMaestro.MODC,'V08190');assert.equal(r.datosMaestro.COD_ALFA,'9911V0818110036');assert.equal(r.datosMaestro.FECHA_ALTA,'01/01/2025');assert.equal(S.prepararSueltos({productos:p,estado:'COMPLETO',resumen:{revisar:0}}).listos,0);});
 test('EAN existente en COD_ALFABA con COD_ALFABA1 vacío no genera alta',()=>{const registros=[['712138','VZ0306','2311VZ030610135'],['1072514','VZ0196','2411VZ019610135'],['1349587','V02731','2611V0273110035'],['1360318','V03191','2611V0319110035']].map(([codigo,modc,alfa])=>{const r=linea('7909641530675',codigo).split('|');r[11]=modc;r[8]=alfa;r[15]='';return r.join('|');});const m={...S.parsearSueltos(registros.join('\n')),disponible:true},p=fixture('35');p.talles[0].EAN='7909641530675';generar(p,m);const r=p.sueltos.filas[0];assert.equal(r.estado,'ENCONTRADO');assert.equal(r.datosMaestro.CODIGO,'1360318');assert.equal(r.datosMaestro.MODC,'V03191');assert.equal(r.datosMaestro.COD_ALFA,'2611V0319110035');assert.equal(r.errores.length,0);});
+test('series históricas VZ/V y ML/L usan el máximo de la serie actual confirmada por maestro de modelos',()=>{
+ for(const [marca,actual,ultimo,historico]of [['VIZZANO','V08457','V08268','VZ9999'],['MOLECA','L02655','L02649','ML9999']]){
+  const p=fixture();p.listado[0].marcas=[marca];p.modulos.filas[0].MODC=actual;p.modulos.filas[0].ultimoMODC=ultimo;
+  const m=vacio();m.modelosPorProducto=new Map([[p.listado[0].PRODUCTO,new Set([historico])]]);
+  S.generarSueltos(p,m,rubros,{disponible:true,indice:new Map()});assert.equal(p.sueltos.filas[0].MODC,actual);assert.equal(p.sueltos.filas[0].COD_ALFA.length,15);
+ }
+});
+test('no omite prefijos desconocidos ni resuelve series mezcladas sin confirmación de modelos',()=>{
+ for(const [historico,ultimo]of [['B9999','V08268'],['VZ9999',undefined]]){
+  const p=fixture();p.modulos.filas[0].ultimoMODC=ultimo;const m=vacio();m.modelosPorProducto=new Map([[p.listado[0].PRODUCTO,new Set([historico])]]);generar(p,m);assert.equal(p.sueltos.filas[0].estado,'REVISAR');assert.equal(p.sueltos.filas[0].MODC,null);
+ }
+});
+test('un suelto cuyo módulo ya existe resuelve la serie actual confirmada por asignaciones del maestro',()=>{
+ const p=fixture();p.modulos.filas=[];p.asignaciones=[{PRODUCTO:p.listado[0].PRODUCTO,estado:'ENCONTRADO',MODC:'V08182'}];const m=vacio();m.modelosPorProducto=new Map([[p.listado[0].PRODUCTO,new Set(['VZ9999','V08199'])]]);generar(p,m);assert.equal(p.sueltos.filas[0].MODC,'V08199');assert.equal(p.sueltos.filas[0].estado,'NUEVO');
+});

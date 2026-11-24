@@ -19,6 +19,19 @@ function maximoMODC(valores){
  if(!lista.length||partes.some(p=>!p)||new Set(partes.map(p=>p[1])).size!==1)return null;
  return lista.reduce((max,v,i)=>BigInt(partes[i][2])>BigInt(/^([A-Z]+)(\d+)$/.exec(max)[2])?v:max,lista[0]);
 }
+function maximoMODCProducto(valores,propuestas,marca,asignadas=[]){
+ const maximo=maximoMODC(valores);if(maximo)return maximo;
+ // Las series históricas ML/VZ no comparten numeración con las actuales L/V.
+ // Solo usar la serie actual cuando está confirmada por el maestro de modelos
+ // que originó la propuesta. No convertir códigos existentes ni admitir otras marcas.
+ const series={MOLECA:['L','ML'],VIZZANO:['V','VZ']}[normalizar(marca)];
+ if(!series)return null;
+ const prefijo=v=>/^([A-Z]+)\d+$/.exec(String(v||''))?.[1];
+ if(propuestas.length){if(propuestas.some(p=>prefijo(p.MODC)!==series[0]||prefijo(p.ultimoMODC)!==series[0]))return null;}
+ else if(!asignadas.length||asignadas.some(p=>prefijo(p.MODC)!==series[0]))return null;
+ if(valores.some(v=>!series.includes(prefijo(v))))return null;
+ return maximoMODC(valores.filter(v=>prefijo(v)===series[0]));
+}
 function parsearSueltos(texto, { soloPrecios = false } = {}) {
  const articulos = [];const indice=new Map(),alfas=new Set(),modelosPorProducto=new Map();let registros=0,sinEAN=0;
  for(const [i,l]of texto.replace(/^\uFEFF/,'').split(/\r?\n/).entries()){if(!l.trim())continue;const a=l.split('|').map(v=>v.trim());if(a.length!==16)throw new Error(`Maestro de sueltos: fila ${i+1} inválida.`);if(a[0]==='ESTILO')continue;const r=Object.fromEntries(CAMPOS.map((c,j)=>[c,a[j]]));if(r.NIVEL!=='900')throw new Error('Nivel inválido en maestro de sueltos.');registros++;if (soloPrecios) { articulos.push({ CODIGO: r.CODIGO, COD_ALFA: r.COD_ALFA, DMODC: r.DMODC }); continue; }const producto=[r.ESTILO,r.COD_MATERIAL,r.COD_COLOR].join('.');if(!modelosPorProducto.has(producto))modelosPorProducto.set(producto,new Set());if(r.MODC)modelosPorProducto.get(producto).add(r.MODC);if(r.COD_ALFA)alfas.add(r.COD_ALFA.toUpperCase());const eans=[...new Set([r.COD_ALFABA1,r.COD_ALFABA].filter(v=>/^\d{13}$/.test(v)))];if(!eans.length){sinEAN++;continue;}for(const ean of eans){if(!indice.has(ean))indice.set(ean,[]);indice.get(ean).push(r);}}
@@ -36,7 +49,7 @@ function generarSueltos(productos,maestro,rubros,maestroModulos){
   if(unicos.length){r.coincidenciasMaestro=unicos;r.datosMaestro=maximosPorEAN(unicos);r.MODC=r.datosMaestro.MODC;r.estado='ENCONTRADO';continue;}
   r.estado='NUEVO';if(t.estado!=='COINCIDE')errores.push('La combinación tiene diferencias en el cruce.');if(!/^\d{2}$/.test(talle))errores.push('El talle debe tener dos dígitos para formar COD_ALFA de 15 caracteres.');
   const p=productos.listado.find(p=>p.PRODUCTO===t.PRODUCTO);const propuestas=(productos.modulos?.filas||[]).filter(v=>v.PRODUCTO===t.PRODUCTO);const asignadas=productos.asignaciones.filter(a=>a.PRODUCTO===t.PRODUCTO&&a.estado==='ENCONTRADO');const modelos=[...new Set([...propuestas.map(v=>v.MODC),...asignadas.map(v=>v.MODC),...(maestro.modelosPorProducto?.get(t.PRODUCTO)||[]),...(modelosHistoricos.get(t.PRODUCTO)||[])].filter(Boolean))];
-  const maximo=maximoMODC(modelos);if(!maximo)errores.push('No se pudo determinar un MODC máximo válido para el producto.');
+  const maximo=maximoMODCProducto(modelos,propuestas,p?.marcas?.length===1?p.marcas[0]:null,asignadas);if(!maximo)errores.push('No se pudo determinar un MODC máximo válido para el producto.');
   const base=propuestas[0];const marca=p?.marcas?.length===1?p.marcas[0]:null;const modc=maximo;const colores=p?.colores||[];const color=colores.length===1?colores[0]:null;const dmodc=p?`${p.STYLE.replaceAll('.','-')}-${p.MATERIAL}`:null;
   const rubro=base?.RUBROS||((p?.descripciones||[]).some(d=>/\bBOLSA\b/i.test(d))?3:1);const marcaCodigo=base?.MARCA||asignadas[0]?.MARCA; // se resuelve abajo desde el maestro de marcas
   Object.assign(r,FIJOS_MODULO,{CODIGO:null,NIVEL:900,COD_TEM:1,DCOD_TEM:'IN',MODC:modc,DMODC:dmodc,DMARCA:marca,MARCA:marcaCodigo||null,RUBROS:rubro,RUBRO:rubro===3?'ACCESORIOS':'CALZADO',CLASIFIC:'1',DCLASIFIC:'PRIMERA',COLORC:'00',DCOLORC:color,TALLC:talle,DTALLC:talle,PARES:1,COD_ALFABA:ean,COD_ALFAB1:'',COD_ANO:aa,FECHA_ALTA:fecha,COD_ALFA:modc?`${aa}11${modc}100${talle}`:null});
