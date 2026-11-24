@@ -548,55 +548,56 @@ La grilla de modelos muestra FOB analizados agrupados por valor, con la cantidad
 
 ## Publicación por Git y actualización del servidor
 
-Esta app usa el mismo repositorio local de Productos (`file:///C:/productos-app`),
-con una rama independiente: `apps/facturas-versato`. La rama de Productos no se modifica.
-No se necesita GitHub para este circuito.
+Facturas Versato tiene un repositorio propio, independiente de Productos:
+`C:\repositorios-git\versato-import-app.git` (repositorio bare en NBK-SIS-05).
+Rama: `apps/facturas-versato`.
 
-En desarrollo, desde la carpeta de Facturas Versato, primera publicación:
-
-```powershell
-.\scripts\publicar-dev.ps1 -Inicializar -Mensaje "Version inicial de Facturas Versato"
-```
-
-Para los siguientes cambios:
+En desarrollo, publicar desde esta carpeta:
 
 ```powershell
 .\scripts\publicar-dev.ps1 -Mensaje "Descripcion del cambio"
 ```
 
-El script muestra los archivos, ejecuta las pruebas y solicita `SI` antes de hacer
-commit y push. Excluye `.env`, `data`, fotos, listas, salidas y dependencias.
-Incluye la plantilla original de vendedores, necesaria para generar las grillas.
-La configuración de vistas y programación está en `data`: respaldarla y copiarla
-por separado durante la primera instalación. El repositorio de fotos también está allí.
+El script muestra los archivos, ejecuta las pruebas y pide SI antes de commit/push.
+Conserva fuera de Git .env, data (configuraciones, vistas, programación y fotos),
+listas originales, dependencias y salidas. Incluye la plantilla de vendedores.
 
-Primera instalación del código en el servidor: clonar la rama en una carpeta NUEVA,
-sin sobrescribir la instalación que ya está funcionando:
+En el servidor, comprobar primero acceso al repositorio de esta PC:
 
 ```powershell
-git clone --branch apps/facturas-versato --single-branch <ruta-accesible-al-repositorio-de-Productos> C:\versato-import-app-nueva
+Test-Path "\\NBK-SIS-05\C$\repositorios-git\versato-import-app.git\HEAD"
 ```
 
-La referencia `file:///C:/productos-app` es local al equipo donde se ejecuta Git.
-En otro servidor, usar una ruta UNC al MISMO repositorio, o el remoto corporativo
-que corresponda. No sirve apuntar a un `C:\productos-app` inexistente en ese servidor.
-El publicador acepta `-Repositorio` y ambos scripts aceptan `-Rama`.
+La ruta administrativa C$ requiere permisos de acceso de Windows. Si no está
+habilitada, usar una carpeta compartida autorizada que apunte al mismo repositorio.
+No se abre ni modifica ningún recurso compartido desde los scripts.
 
-Preparar el `.env`, datos y acceso a SQL/FTP de esa instalación; configurar
-`STOCK_EXCEL_PYTHON` con el `python.exe` del servidor, con Pillow instalado.
-El servicio de Windows debe ejecutar esta instalación. El script de actualización
-no instala el servicio ni modifica la base de datos automáticamente.
-
-Con el servicio ya instalado y en ejecución, actualizar desde PowerShell como administrador:
+Primera instalación Git: clonar en una carpeta nueva (no encima de una instalación existente):
 
 ```powershell
-.\scripts\actualizar-produccion.ps1 -RutaApp C:\versato-import-app -Servicio VersatoImportApp -Python C:\Python\python.exe
+git clone --branch apps/facturas-versato --single-branch "\\NBK-SIS-05\C$\repositorios-git\versato-import-app.git" C:\versato-import-app-nueva
 ```
 
-Ajustar el nombre real del servicio y el Python. Si el puerto es otro, indicar
-`-UrlComprobacion http://127.0.0.1:3000/stock`. El script hace fetch, exige avance
-lineal, detiene el servicio, actualiza el código, ejecuta `npm ci --omit=dev`,
-reinicia el servicio y verifica HTTP. No usa reset forzado, clean ni stash.
-Si hay cambios locales o una actualización incluye datos/configuración, se detiene.
-Ante una falla después de detener el servicio, informa la versión anterior y
-requiere revisar el error; no revierte ni ejecuta migraciones SQL automáticamente.
+Antes de sustituir la instalación existente, conservar una copia de .env y data,
+preparar SQL/FTP, instalar dependencias y configurar el servicio. El script de
+actualización NO realiza esta migración inicial ni crea el servicio.
+Configurar STOCK_EXCEL_PYTHON con un python.exe del servidor con Pillow instalado.
+
+Para una instalación Git ya preparada en C:\versato-import-app, ejecutar como administrador:
+
+```powershell
+.\scripts\actualizar-produccion.ps1 -Servicio VersatoImportApp -Python C:\Python\python.exe
+```
+
+Ajustar el servicio, Python y -UrlComprobacion si el puerto no es 3100.
+El script usa el origin de ESA instalación; debe apuntar al repositorio propio de Facturas.
+Si una instalación anterior apuntaba al repositorio de Productos, corregir antes:
+
+```powershell
+git -C C:\versato-import-app remote set-url origin "\\NBK-SIS-05\C$\repositorios-git\versato-import-app.git"
+```
+
+El actualizador exige avance lineal y ausencia de cambios locales, conserva .env y data,
+instala dependencias con npm ci, reinicia el servicio y verifica la respuesta HTTP.
+No hace reset forzado, clean ni migraciones SQL automáticas. Ante fallas informa
+la versión anterior y exige revisar el error antes de reiniciar o revertir.
