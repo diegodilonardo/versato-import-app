@@ -22,8 +22,9 @@ if(Git-App -Argumentos @('status','--porcelain','--untracked-files=no')){throw '
 $servicioActual=Get-Service -Name $Servicio
 if($servicioActual.Status -ne 'Running'){throw 'El servicio debe estar iniciado antes de actualizar.'}
 if(-not(Test-Path -LiteralPath $Python -PathType Leaf)){throw 'Indicá el python.exe instalado en el servidor.'}
-& $Python -c 'from PIL import Image, ImageOps; print("Python y Pillow: OK")'
+'from PIL import Image, ImageOps' | & $Python -
 if($LASTEXITCODE -ne 0){throw 'Falta Pillow en ese Python. No se detuvo el servicio.'}
+Write-Host 'Python y Pillow: OK'
 Git-App -Argumentos @('fetch','origin',"refs/heads/${Rama}:refs/remotes/origin/$Rama") | Out-Host
 $anterior=Git-App -Argumentos @('rev-parse','HEAD');$destino=Git-App -Argumentos @('rev-parse',"refs/remotes/origin/$Rama")
 & git -C $RutaApp merge-base --is-ancestor HEAD $destino
