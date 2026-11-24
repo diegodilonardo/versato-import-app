@@ -22,3 +22,17 @@ test('Bloquea revisiones obsoletas, destino desconocido o ambiguo y motivos vac�
  assert.throws(()=>prepararCorreccion(resultado,previews,{...maestro,ambiguos:['001']},entrada),{status:422});
  assert.throws(()=>prepararCorreccion(resultado,previews,{...maestro,disponible:false},entrada),{status:422});
 });
+test('permite cambiar cliente desde una NV pendiente con versión vigente',()=>{
+ const p=structuredClone(previews);p.PACKING_LIST.registros[0].datos.SHOP='001';p.CODIGOS_BARRA.registros[0].datos.LOJAS='001';
+ const r={...resultado,notasVenta:{revision:'nv1',clientes:[{cliente:'001',requiereDomicilio:true}]}};
+ const e={...entrada,anterior:'001',nuevo:'002',desdeNV:true,revisionNV:'nv1'};
+ const cambio=prepararCorreccion(r,p,maestro,e);assert.equal(cambio.anterior,'001');assert.equal(cambio.nuevo,'002');assert.equal(cambio.cajasPacking,1);assert.throws(()=>prepararCorreccion(r,p,maestro,{...e,revisionNV:'vieja'}),{status:409});
+});
+test('bloquea reasignación de NV con domicilio fijado, destino generado o importada',()=>{
+ const p=structuredClone(previews);p.PACKING_LIST.registros[0].datos.SHOP='001';p.CODIGOS_BARRA.registros[0].datos.LOJAS='001';const e={...entrada,anterior:'001',nuevo:'002',desdeNV:true,revisionNV:'nv1'};
+ for(const r of [
+ {...resultado,notasVenta:{revision:'nv1',clientes:[{cliente:'001',requiereDomicilio:false}]}},
+ {...resultado,notasVenta:{revision:'nv1',clientes:[{cliente:'001',requiereDomicilio:true},{cliente:'002',requiereDomicilio:false}]}},
+ {...resultado,notasVenta:{revision:'nv1',clientes:[{cliente:'001',requiereDomicilio:true}]},controlNVPresea:{filas:[{cliente:'001',importadas:1}]}}
+ ])assert.throws(()=>prepararCorreccion(r,p,maestro,e),{status:409});
+});

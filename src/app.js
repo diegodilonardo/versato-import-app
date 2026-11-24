@@ -235,7 +235,9 @@ async function prepararNotasVenta(id,actualizar=false){
   const efectivos=require('./services/correccionesClientes').aplicarCorreccionesClientes(previews,resultado.correccionesClientes);
   const elegidos=Object.fromEntries((resultado.notasVenta?.clientes||[]).filter(c=>Object.hasOwn(c,'domicilioElegido')).map(c=>[c.cliente,c.domicilioElegido]));
   const nv=require('./services/nvClientes').prepararNV(resultado,efectivos,productos,clientes,new Date(),elegidos);
-  if(resultado.notasVenta?.correccionesOrigen===JSON.stringify(resultado.correccionesClientes||[]))nv.clientes=nv.clientes.map(c=>{const anterior=resultado.notasVenta.clientes.find(a=>a.cliente===c.cliente);return anterior&&!anterior.bloqueada?anterior:c;});
+  let cambios=[];try{const previas=JSON.parse(resultado.notasVenta?.correccionesOrigen||'[]');cambios=(resultado.correccionesClientes||[]).slice(previas.length);}catch{cambios=resultado.correccionesClientes||[];}
+  const afectados=new Set(cambios.flatMap(c=>[c.anterior,c.nuevo]));
+  nv.clientes=nv.clientes.map(c=>{const anterior=resultado.notasVenta?.clientes.find(a=>a.cliente===c.cliente);return anterior&&!anterior.bloqueada&&!afectados.has(c.cliente)?anterior:c;});
   for(const c of nv.clientes)if(Object.hasOwn(elegidos,c.cliente)&&c.domicilios.includes(elegidos[c.cliente]))c.domicilioElegido=elegidos[c.cliente];
   return nv;
  });

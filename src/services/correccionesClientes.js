@@ -13,7 +13,12 @@ function prepararCorreccion(resultado,previews,maestro,entrada){
  if(entrada.huellaMaestro!==maestro.huella)throw Object.assign(new Error('El maestro de clientes cambió. Volvé a abrir la corrección y revisá el cliente de destino.'),{status:409});
  if(typeof entrada.anterior!=='string'||typeof entrada.nuevo!=='string'||typeof entrada.motivo!=='string')throw Object.assign(new Error('Completá cliente de origen, destino y motivo.'),{status:422});
  const anterior=entrada.anterior.trim(),nuevo=entrada.nuevo.trim(),motivo=entrada.motivo.trim();
+ if(entrada.desdeNV&&(!resultado.notasVenta||entrada.revisionNV!==resultado.notasVenta.revision))throw Object.assign(new Error('Las NV cambiaron. Volvé a abrir la factura.'),{status:409});
  if(anterior===nuevo||!/^\d+$/.test(nuevo)||motivo.length<3||motivo.length>500)throw Object.assign(new Error('Seleccioná un cliente diferente y escribí un motivo de 3 a 500 caracteres.'),{status:422});
+ const afectadas=(resultado.notasVenta?.clientes||[]).filter(c=>c.cliente===anterior||c.cliente===nuevo);
+ if(entrada.desdeNV&&!afectadas.some(c=>c.cliente===anterior))throw Object.assign(new Error('El cliente ya no pertenece a estas NV.'),{status:409});
+ if(afectadas.some(c=>!c.requiereDomicilio))throw Object.assign(new Error('El cliente de origen o destino ya tiene una NV generada con domicilio fijado. No se permite reasignarla.'),{status:409});
+ if(resultado.controlNVPresea?.filas?.some(c=>[anterior,nuevo].includes(c.cliente)&&c.importadas>0))throw Object.assign(new Error('El cliente de origen o destino ya tiene una NV en Presea.'),{status:409});
  const nombre=maestro.ambiguos?.includes(nuevo)?null:maestro.indice?.get(nuevo)||(nuevo==='131600'?'ADMINISTRACIÓN':null);
  if(!nombre)throw Object.assign(new Error('El cliente de destino no tiene un nombre único en el maestro.'),{status:422});
  const control=controlarClientes(aplicarCorreccionesClientes(previews,resultado.correccionesClientes),maestro);

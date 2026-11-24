@@ -101,7 +101,12 @@ function crearRepositorioSQL(){return{
    const filas=(await new sql.Request(tx).input('id',sql.UniqueIdentifier,id).query("SELECT Tipo,FilaExcel,Normalizado,Errores FROM versato.FilasOrigen WHERE AnalisisId=@id AND Tipo IN('PACKING_LIST','CODIGOS_BARRA') ORDER BY Tipo,FilaExcel")).recordset;
    const previews={};for(const r of filas){if(!previews[r.Tipo])previews[r.Tipo]={registros:[]};previews[r.Tipo].registros.push({fila:r.FilaExcel,datos:JSON.parse(r.Normalizado),errores:JSON.parse(r.Errores)});}
    if(!previews.PACKING_LIST||!previews.CODIGOS_BARRA)throw Object.assign(new Error('Este análisis no conserva las filas necesarias para el correo.'),{status:422});
-   if(correccion){const cambio=require('./correccionesClientes').prepararCorreccion(resultado,previews,maestro,correccion);resultado.correccionesClientes=[...(resultado.correccionesClientes||[]),cambio];}
+   if(correccion){
+    const cambio=require('./correccionesClientes').prepararCorreccion(resultado,previews,maestro,correccion);
+    const envios=await new sql.Request(tx).input('id',sql.UniqueIdentifier,id).input('origen',sql.NVarChar(100),'nv_cliente_'+cambio.anterior+'.dbi').input('destino',sql.NVarChar(100),'nv_cliente_'+cambio.nuevo+'.dbi').query(`SELECT TOP(1) e.Id FROM versato.EnviosFTP e WHERE e.AnalisisId=@id AND ((e.Estado='EN_CURSO' AND e.Destino LIKE '%NOTAS_VENTA%') OR EXISTS(SELECT 1 FROM OPENJSON(e.Detalle,'$.archivos') WITH(nombre nvarchar(100) '$.nombre',estado nvarchar(30) '$.estado') a WHERE a.nombre IN(@origen,@destino) AND a.estado<>'PENDIENTE'))`);
+    if(envios.recordset.length)throw Object.assign(new Error('Hay un envío de NV para el cliente de origen o destino. Revisá FTP y Presea antes de cambiarlo.'),{status:409});
+    resultado.correccionesClientes=[...(resultado.correccionesClientes||[]),cambio];
+   }
    const efectivos=require('./correccionesClientes').aplicarCorreccionesClientes(previews,resultado.correccionesClientes);
    resultado.controlClientes=require('./controlClientes').controlarClientes(efectivos,maestro);
    resultado.informeCorreo=require('./correoFactura').prepararInforme(resultado,efectivos,maestro);
