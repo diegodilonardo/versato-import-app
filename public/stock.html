@@ -4,7 +4,7 @@
  <meta charset="utf-8">
  <meta name="viewport" content="width=device-width, initial-scale=1">
  <title>Stock · Versato</title>
- <link rel="stylesheet" href="/styles.css?v=20261125-descarga-vistas">
+ <link rel="stylesheet" href="/styles.css?v=20261125-descarga-en-fila">
  <script src="/stock.js?v=20261124-talles-verticales" defer></script>
 </head>
 <body>
@@ -15,13 +15,14 @@
   <div class="price-actions"><button id="stock-actualizar">Actualizar stock desde FTP</button></div>
   <p id="stock-estado" role="status">Consultando stock…</p>
   <div class="stock-vistas">
-   <div class="stock-vistas-cabecera"><h2>Vistas guardadas</h2><button id="stock-exportar" class="stock-descargar-vista" type="button" disabled>Descargar grilla para vendedores</button></div>
+   <h2>Vistas guardadas</h2>
    <div class="stock-filtros">
     <label>Elegir vista<select id="stock-vista"><option value="">Seleccioná una vista</option></select></label>
     <label>Nombre de la vista<input id="stock-vista-nombre" maxlength="80" placeholder="Ej.: Vendedores · depósito 7"></label>
     <button id="stock-guardar" type="button">Guardar nueva vista</button>
     <button id="stock-vista-actualizar" type="button" class="secondary" disabled>Actualizar vista</button>
     <button id="stock-vista-eliminar" type="button" class="secondary" disabled>Eliminar vista</button>
+    <button id="stock-exportar" class="stock-descargar-vista" type="button" disabled>Descargar grilla para vendedores</button>
    </div>
    <p id="stock-vista-estado" class="muted" role="status">Se guardan los filtros. Al abrir una vista se consultan el stock y los precios disponibles en la app.</p>
   </div>
