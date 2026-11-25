@@ -4,7 +4,7 @@
  <meta charset="utf-8">
  <meta name="viewport" content="width=device-width, initial-scale=1">
  <title>Stock · Versato</title>
- <link rel="stylesheet" href="/styles.css?v=20261124-talles-verticales">
+ <link rel="stylesheet" href="/styles.css?v=20261125-descarga-vistas">
  <script src="/stock.js?v=20261124-talles-verticales" defer></script>
 </head>
 <body>
@@ -12,10 +12,10 @@
 <main>
  <p class="eyebrow">DISPONIBILIDAD POR DEPÓSITO</p><h1>Grillas de stock</h1>
  <section class="card">
-  <div class="price-actions"><button id="stock-actualizar">Actualizar stock desde FTP</button><button id="stock-exportar" class="secondary" disabled>Descargar grilla para vendedores</button></div>
+  <div class="price-actions"><button id="stock-actualizar">Actualizar stock desde FTP</button></div>
   <p id="stock-estado" role="status">Consultando stock…</p>
   <div class="stock-vistas">
-   <h2>Vistas guardadas</h2>
+   <div class="stock-vistas-cabecera"><h2>Vistas guardadas</h2><button id="stock-exportar" class="stock-descargar-vista" type="button" disabled>Descargar grilla para vendedores</button></div>
    <div class="stock-filtros">
     <label>Elegir vista<select id="stock-vista"><option value="">Seleccioná una vista</option></select></label>
     <label>Nombre de la vista<input id="stock-vista-nombre" maxlength="80" placeholder="Ej.: Vendedores · depósito 7"></label>
