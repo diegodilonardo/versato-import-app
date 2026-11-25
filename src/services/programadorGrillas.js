@@ -3,7 +3,8 @@ const path=require('node:path');
 const {createHash,randomUUID}=require('node:crypto');
 const cron=require('./cronGrillas');
 async function publicar(destino,contenido,vigente){
- await fs.mkdir(destino,{recursive:true});
+ try{const carpeta=await fs.stat(destino);if(!carpeta.isDirectory())throw Error('El destino no es una carpeta.');}
+ catch(error){if(error.code==='ENOENT')await fs.mkdir(destino,{recursive:true});else throw error;}
  const final=path.join(destino,contenido.nombre),temporal=path.join(destino,'.'+contenido.nombre+'.'+randomUUID()+'.tmp');
  try{const f=await fs.open(temporal,'wx');try{await f.writeFile(contenido.buffer);await f.sync();}finally{await f.close();}
   if(!await vigente())throw Error('La vista cambió durante la generación. Se conservó el archivo anterior.');
@@ -39,7 +40,7 @@ function crear(opciones={}){
     const vencida=p.activa&&e.proxima&&Date.parse(e.proxima)<=ahora().getTime();
     if(!manual&&!vencida)continue;
     if(e.reintentar&&Date.parse(e.reintentar)>ahora().getTime())continue;
-    e.intento=ahora().toISOString();e.estado='Generando';await persistir();
+    e.intento=ahora().toISOString();e.estado='Generando';e.error=null;await persistir();
     try{
      // Cada generación toma una descarga nueva, aunque todavía no hayan pasado diez minutos.
      await refrescar();
@@ -56,7 +57,7 @@ function crear(opciones={}){
      e.error=null;e.reintentar=null;pendientes.delete(v.id);
      if(p.modo==='unica'&&vencida){e.unicaCompletada=p.ejecutarEn;e.estado=e.estado==='Sin cambios'?'Completada · sin cambios':'Completada';}
      e.proxima=p.modo==='unica'?proxima(p,e):(p.activa?cron.siguiente(p.cron,ahora()):null);
-    }catch(error){e.estado='Error';e.error=error.message;e.reintentar=new Date(ahora().getTime()+60000).toISOString();}
+    }catch(error){e.estado='Error';e.error=['EPERM','EACCES'].includes(error.code)?'Sin permisos para publicar en '+p.destino+'. Revisá la cuenta del servicio ProcesosVersatoFC y sus permisos de modificación en la carpeta compartida. Detalle: '+error.message:error.message;e.reintentar=new Date(ahora().getTime()+60000).toISOString();}
     e.historial=[{fecha:e.intento,estado:e.estado,error:e.error},...(e.historial||[])].slice(0,20);await persistir();
    }
    await persistir();
