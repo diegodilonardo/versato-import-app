@@ -1,11 +1,12 @@
 const XLSX=require('xlsx');
 const TIPO='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 const COLUMNAS=['NUMERO_NV','FECHA_NV','COD_ALFA','DETALLE','CODIGO_CLIENTE','DETALLE_CLIENTE','DETALLE_MARCA','DETALLE_MODELO','CODIGO_COLOR','DETALLE_COLOR','SIZE_RUN','DETALLE_CURVA','CANTIDAD_MODULOS','TOTAL_PARES'];
-function prepararExcelNV(resultado){
+function prepararExcelNV(resultado,cliente){
  const nv=resultado.notasVenta,filas=[],errores=[];if(!nv?.clientes?.length)return null;
  if(nv.correccionesOrigen!==JSON.stringify(resultado.correccionesClientes||[]))errores.push('Actualizá las NV después de las correcciones de clientes.');
  const catalogo=resultado.comex?.masterData?.filas||[],control=resultado.controlNVPresea;const controlVigente=control?.disponible&&control.revisionNV===nv.revision&&control.correccionesOrigen===JSON.stringify(resultado.correccionesClientes||[]);
- for(const c of nv.clientes){if(c.cliente==='131600')continue;if(c.bloqueada)errores.push('La NV del cliente '+c.cliente+' está pendiente de revisión.');
+ if(cliente!==undefined&&!nv.clientes.some(c=>c.cliente===cliente&&cliente!=='131600'))throw Object.assign(new Error('El cliente no tiene una NV guardada.'),{status:404});
+ for(const c of nv.clientes){if(c.cliente==='131600'||(cliente!==undefined&&c.cliente!==cliente))continue;if(c.bloqueada)errores.push('La NV del cliente '+c.cliente+' está pendiente de revisión.');
   for(const f of c.filas){const candidatos=catalogo.filter(r=>r.cod_alfa===f.COD_ALFA&&String(r.codigo_interno)===String(f.CODIGO));const unicos=[...new Map(candidatos.map(r=>[JSON.stringify(r),r])).values()];const m=unicos.length===1?unicos[0]:null;
    if(!m){errores.push('Falta el detalle único del módulo '+f.COD_ALFA+' del cliente '+c.cliente+'. Actualizá COMEX desde maestros.');continue;}
    const colores=[...new Set((resultado.productos?.asignaciones||[]).filter(a=>a.COD_ALFA===f.COD_ALFA&&String(a.CODIGO)===String(f.CODIGO)).map(a=>String(a.PRODUCTO||'').split('.').at(-1)).filter(Boolean))];
@@ -20,7 +21,7 @@ function prepararExcelNV(resultado){
   }
  }
  filas.sort((a,b)=>a.CODIGO_CLIENTE.localeCompare(b.CODIGO_CLIENTE,'es',{numeric:true})||a.COD_ALFA.localeCompare(b.COD_ALFA));
- return {nombre:'Detalle NV - '+String(resultado.facturas?.[0]||'factura').replace(/[^A-Za-z0-9-]/g,'-')+'.xlsx',columnas:COLUMNAS,filas,errores:[...new Set(errores)],bloqueada:!!errores.length||!filas.length,totalModulos:filas.reduce((s,r)=>s+r.CANTIDAD_MODULOS,0),totalPares:filas.reduce((s,r)=>s+r.TOTAL_PARES,0)};
+ return {nombre:'Detalle NV - '+String(resultado.facturas?.[0]||'factura').replace(/[^A-Za-z0-9-]/g,'-')+(cliente!==undefined?' - Cliente '+cliente:'')+'.xlsx',columnas:COLUMNAS,filas,errores:[...new Set(errores)],bloqueada:!!errores.length||!filas.length,totalModulos:filas.reduce((s,r)=>s+r.CANTIDAD_MODULOS,0),totalPares:filas.reduce((s,r)=>s+r.TOTAL_PARES,0)};
 }
 function exportarExcelNV(archivo){
  if(!archivo||archivo.bloqueada)throw Object.assign(new Error(archivo?.errores.join(' ')||'Prepará las NV para generar su Excel.'),{status:422});

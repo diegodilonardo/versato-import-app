@@ -321,7 +321,7 @@ function mostrarNV(payload,parent){
    mostrarCambiosClienteNV(payload,card,c.cliente);
    for(const error of c.errores)element('p',error,card).className='download-notice';
    if(c.requiereDomicilio&&!nvExistePresea(c.cliente)&&!desactualizadas&&!pendiente)mostrarCorreccionCliente(payload,card,c.cliente);
-   const detalle=element('details','',card);element('summary','Ver detalle',detalle);table(['COD_ALFA','Cantidad','DOMI_ENTRE'],c.filas.map(r=>[r.COD_ALFA,r.CANTIDAD,r.DOMI_ENTRE||'—']),detalle);
+   const detalle=element('details','',card);element('summary','Ver detalle',detalle);table(['Marca','Modelo','Color','COD_ALFA','Cantidad'],globalThis.detalleNV.filas(payload,c.cliente).map(r=>[r.marca||'—',r.modelo||'—',r.color||'—',r.codAlfa,numeroResumen(r.cantidad)]),detalle);detalle.classList.add('nv-product-detail');
    let domicilio=null,sinGuardar=false;const actual=Object.hasOwn(c,'domicilioElegido')?c.domicilioElegido:!c.requiereDomicilio?c.filas[0]?.DOMI_ENTRE:undefined;
    if(c.domicilios.length>1){
     const label=element('label','Domicilio de entrega',card);domicilio=element('select','',label);domicilio.setAttribute('aria-label','Domicilio de entrega de '+c.cliente);const domicilioBloqueado=!c.requiereDomicilio||nvExistePresea(c.cliente)||desactualizadas;domicilio.disabled=domicilioBloqueado;const inicial=element('option','Seleccioná un domicilio',domicilio);inicial.value='';inicial.disabled=true;inicial.selected=true;
@@ -332,6 +332,9 @@ function mostrarNV(payload,parent){
    }else if(c.detalleDomicilios?.length){const d=c.detalleDomicilios[0];element('p','Domicilio: '+(d.codigo||'Sin código')+(d.direccion?' - '+d.direccion:''),card).className='card-caption';}
    const descargar=element('button','Descargar NV (DBI)',card);descargar.type='button';descargar.disabled=c.bloqueada||!c.filas.length||desactualizadas;
    descargar.addEventListener('click',async()=>{descargar.disabled=true;try{const r=await fetch(base+'/'+encodeURIComponent(c.cliente));if(!r.ok)throw new Error((await r.json()).error);const url=URL.createObjectURL(await r.blob()),a=document.createElement('a');a.href=url;a.download=c.nombreArchivo;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);estado.textContent=c.nombreArchivo+' descargado desde las NV guardadas.';}catch(e){estado.textContent=e.message;}finally{descargar.disabled=sinGuardar||c.bloqueada||desactualizadas;}});
+   const excel=element('button','Descargar detalle (Excel)',card);excel.type='button';excel.className='secondary';excel.disabled=pendiente||c.bloqueada||desactualizadas;
+   excel.addEventListener('click',async()=>{excel.disabled=true;estado.textContent='Preparando detalle Excel de '+c.nombre+'…';try{const r=await fetch(base+'/'+encodeURIComponent(c.cliente)+'/detalle.xlsx');if(!r.ok)throw Error((await r.json()).error);const url=URL.createObjectURL(await r.blob()),a=document.createElement('a');a.href=url;a.download='Detalle NV - '+String(payload.facturas?.[0]||'factura').replace(/[^A-Za-z0-9-]/g,'-')+' - Cliente '+c.cliente+'.xlsx';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);estado.textContent='Detalle Excel del cliente '+c.cliente+' descargado.';}catch(e){estado.textContent=e.message;}finally{excel.disabled=pendiente||c.bloqueada||desactualizadas;}});
+
   }
   actualizarEstadosImportacion();parent.dispatchEvent(new Event('comercial-actualizado'));
  }

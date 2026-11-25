@@ -330,6 +330,12 @@ app.post('/api/importaciones/analisis/:id/precios-nv/preparar',async(req,res,nex
 app.get('/api/importaciones/analisis/:id/precios-nv',async(req,res,next)=>{try{
  const r=await analisisGuardados.obtener(req.params.id);if(!r)return res.status(404).json({error:'Análisis no encontrado.'});const {archivos}=require('./services/preciosNVFTP').loteCambiosPrecios(r);if(!archivos.length)return res.status(422).json({error:'Todos los precios ya coinciden con Presea.'});const b=archivos[0].buffer;res.set('Cache-Control','no-store').type('application/octet-stream').attachment('PRECIOS_NV.DBI').send(b);
 }catch(e){next(e);}});
+app.get('/api/importaciones/analisis/:id/nv/:cliente/detalle.xlsx',async(req,res,next)=>{try{
+ const resultado=await analisisGuardados.obtener(req.params.id);if(!resultado)throw Object.assign(new Error('Análisis no encontrado.'),{status:404});
+ if(resultado.notasVenta?.correccionesOrigen!==JSON.stringify(resultado.correccionesClientes||[]))throw Object.assign(new Error('Actualizá las NV después del cambio de cliente.'),{status:409});
+ const servicio=require('./services/archivoNVCorreo'),archivo=servicio.prepararExcelNV(resultado,req.params.cliente);
+ res.set('Cache-Control','no-store').type(servicio.TIPO).attachment(archivo?.nombre||'Detalle NV.xlsx').send(servicio.exportarExcelNV(archivo));
+}catch(e){next(e);}});
 app.get('/api/importaciones/analisis/:id/nv/:cliente',async(req,res,next)=>{try{
  const resultado=await analisisGuardados.obtener(req.params.id);if(!resultado)return res.status(404).json({error:'Análisis no encontrado.'});
  const p=resultado.notasVenta;if(!p)return res.status(422).json({error:'Prepará y guardá las NV antes de descargarlas.'});
