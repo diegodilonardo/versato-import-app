@@ -22,6 +22,9 @@ function parsearClientes(texto){
  return{indice,nombresPorCliente:grupos,ambiguos,registros,sinNombre,domicilios,domiciliosAmbiguos,detalleDomicilios,opcionesDomicilio:new Map([...entregas].map(([c,v])=>[c,[...v]]))};
 }
 async function actualizarClientes(){const r=await actualizarMaestro({remoto:process.env.MAESTRO_CLIENTES_FTP_PATH||'/PRODUCTOS/MAESTROS_VERSATO/Clientes_Versato.TXT',destino:archivoClientes,parsear:parsearClientes,maxBytes:10*1024*1024});if(r.disponible)await require('./clientesSQL').guardarLocal();return r;}
+function incorporarCambiosNV(informe,resultado){
+ return {...informe,cambiosNV:(resultado.correccionesClientes||[]).map(c=>({...c}))};
+}
 function prepararInforme(resultado,previews,maestro){
  const packing=previews.PACKING_LIST?.registros||[],codigos=previews.CODIGOS_BARRA?.registros||[],errores=[];
  if(!maestro?.disponible)errores.push('No se pudo actualizar el maestro de clientes.');
@@ -52,7 +55,7 @@ function prepararInforme(resultado,previews,maestro){
  if(!Number.isSafeInteger(total.cajas)||!Number.isSafeInteger(total.pares))errores.push('Los totales exceden la precisión admitida.');
  if(!filas.length)errores.push('No hay movimientos para informar.');
  const ordenar=(a,b)=>a.cliente.localeCompare(b.cliente,'es',{numeric:true})||String(a.marca||'').localeCompare(b.marca||'','es');
- return{version:1,factura:facturas[0]||'',preparado:new Date().toISOString(),maestro:{archivo:maestro?.archivo,actualizado:maestro?.actualizado,huella:maestro?.huella},marcas:[...porMarca.values()].sort((a,b)=>a.marca.localeCompare(b.marca,'es')),clientes:[...porCliente.values()].sort(ordenar),detalle:filas.sort(ordenar),total,clientesSinNombre:[...faltantes],errores:[...new Set(errores)],bloqueada:errores.length>0};
+ return incorporarCambiosNV({version:1,factura:facturas[0]||'',preparado:new Date().toISOString(),maestro:{archivo:maestro?.archivo,actualizado:maestro?.actualizado,huella:maestro?.huella},marcas:[...porMarca.values()].sort((a,b)=>a.marca.localeCompare(b.marca,'es')),clientes:[...porCliente.values()].sort(ordenar),detalle:filas.sort(ordenar),total,clientesSinNombre:[...faltantes],errores:[...new Set(errores)],bloqueada:errores.length>0},resultado);
 }
 function predeterminadosCorreo(informe){
  const config=require('../config/correoFactura'),codigos=new Set((informe.clientes||[]).map(c=>String(c.cliente)));
@@ -88,6 +91,17 @@ function redactarCorreo(informe,entrada={},adjuntos=[]){
  let texto=titulo+'\r\n\r\n'+num(total.cajas)+' cajas · '+num(total.pares)+' pares\r\n';
  for(const [titulo,headers,rows]of cuadros){html+='<h2 style="'+fuente+'font-size:11pt;line-height:15pt;mso-line-height-rule:exactly;font-weight:bold;color:#355b40;margin:14pt 0 5pt;">'+titulo+'</h2>'+htmlTabla(headers,rows);texto+='\r\n'+titulo+'\r\n'+headers.join('\t')+'\r\n'+rows.map(r=>r.map((v,j)=>j>=r.length-2?num(v):v).join('\t')).join('\r\n')+'\r\nTOTAL GENERAL\t'+num(total.cajas)+'\t'+num(total.pares)+'\r\n';}
  if(o.deposito||o.observaciones){html+='<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;margin-top:16pt;background-color:#f6f8f3;"><tr><td style="padding:10pt 11pt;'+estiloParrafo+'">';for(const [etiqueta,valor]of [['Depósito',o.deposito],['Observaciones',o.observaciones]])if(valor){html+='<p style="'+estiloParrafo+'margin:0 0 4pt;"><strong>'+etiqueta+':</strong> '+esc(valor).replace(/\r?\n/g,'<br>')+'</p>';texto+='\r\n'+etiqueta+': '+valor+'\r\n';}html+='</td></tr></table>';}
+ if(informe.cambiosNV?.length){
+  const tituloCambios='NV modificadas · cambios de cliente';
+  html+='<h2 style="'+fuente+'font-size:11pt;line-height:15pt;color:#80551e;margin:14pt 0 5pt;">'+tituloCambios+'</h2>';
+  texto+='\r\n'+tituloCambios+'\r\n';
+  for(const c of informe.cambiosNV){
+   const fecha=new Date(c.fecha),fechaTexto=Number.isNaN(fecha.getTime())?'Fecha no registrada':fecha.toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour12:false});
+   const lineas=['La asignación original de esta NV fue modificada.', 'Cliente original: '+txt(c.anterior)+' · '+txt(c.nombreAnterior),'Cliente nuevo: '+txt(c.nuevo)+' · '+txt(c.nombreNuevo),'Fecha del cambio: '+fechaTexto,'Motivo: '+txt(c.motivo),'Cantidades reasignadas (Packing): '+num(c.cajasPacking??0)+' cajas · '+num(c.paresPacking??0)+' pares','Cantidades reasignadas (Códigos): '+num(c.cajasCodigos??0)+' cajas · '+num(c.paresCodigos??0)+' pares'];
+   html+='<div style="'+estiloParrafo+'background-color:#fff8ed;border:1px solid #ead4ae;padding:10pt 11pt;margin:0 0 7pt;">'+lineas.map(l=>'<p style="margin:0 0 4pt;">'+esc(l).replace(/\r?\n/g,'<br>')+'</p>').join('')+'</div>';
+   texto+='\r\n'+lineas.join('\r\n')+'\r\n';
+  }
+ }
  if(o.firma){html+='<p style="'+estiloParrafo+'margin:14pt 0 0;">'+esc(o.firma).replace(/\r?\n/g,'<br>')+'</p>';texto+='\r\n'+o.firma+'\r\n';}
  if(adjuntos.length){const nombres=adjuntos.map(a=>a.nombre).join(', ');html+='<p style="'+fuente+'font-size:9pt;line-height:13pt;mso-line-height-rule:exactly;color:#647567;margin:12pt 0 0;"><strong>Adjunto:</strong> '+esc(nombres)+'</p>';texto+='\r\nAdjunto: '+nombres+'\r\n';}
  html+='</td></tr></table><!--[if mso]></td></tr></table><![endif]--></td></tr></table></body></html>';
@@ -113,4 +127,4 @@ function crearBorrador(informe,entrada,adjuntos=[]){
  }
  return Buffer.from(cabeceras.join('\r\n')+'\r\n\r\n'+cuerpo,'utf8');
 }
-module.exports={archivoClientes,opcionesCorreo,parsearClientes,actualizarClientes,prepararInforme,predeterminadosCorreo,redactarCorreo,crearBorrador};
+module.exports={archivoClientes,opcionesCorreo,parsearClientes,actualizarClientes,prepararInforme,incorporarCambiosNV,predeterminadosCorreo,redactarCorreo,crearBorrador};
