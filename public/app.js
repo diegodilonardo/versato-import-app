@@ -274,6 +274,28 @@ function organizarAcciones(contenedor,payload,controles){
  for(const [i,boton]of controles.entries()){const card=crearTarjeta(controlGrid,i===0?'Cruce completo':'Comparación de datos','control-download-card');element('p',i===0?'Excel con todos los controles y resultados.':'Respuesta completa del análisis en formato JSON.',card).className='card-caption';boton.style.marginTop='0';card.append(boton);}
 }
 
+function mostrarCambiosClienteNV(payload,card,cliente){
+ const cambios=globalThis.historialClienteNV.cambiosDelCliente(payload.correccionesClientes,cliente);
+ if(!cambios.length)return;
+ const aviso=element('div','',card);aviso.className='nv-change-notice';
+ element('strong','NV modificada · cambio de cliente',aviso);
+ element('p','La asignación original fue modificada. Revisá el cliente y el domicilio de entrega antes de enviar esta NV.',aviso);
+ const fecha=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?'Fecha no disponible':d.toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'});};
+ const ultimo=cambios.at(-1);
+ element('p','Último cambio: '+fecha(ultimo.fecha),aviso).className='nv-change-date';
+ const detalle=element('details','',aviso);element('summary','Ver cambios de cliente ('+cambios.length+')',detalle);
+ const lista=element('ol','',detalle);lista.className='nv-change-history';
+ const cantidad=v=>typeof v==='number'?numeroResumen(v):'—';
+ for(const c of cambios){
+  const item=element('li','',lista);
+  element('strong',(c.anterior||'Sin código')+' · '+(c.nombreAnterior||'Sin nombre')+' → '+c.nuevo+' · '+(c.nombreNuevo||'Sin nombre'),item);
+  element('p',fecha(c.fecha),item).className='nv-change-date';
+  element('p','Motivo: '+(c.motivo||'No registrado'),item);
+  element('p','Packing: '+cantidad(c.cajasPacking)+' cajas · '+cantidad(c.paresPacking)+' pares. Códigos de barra: '+cantidad(c.cajasCodigos)+' cajas · '+cantidad(c.paresCodigos)+' pares.',item);
+  element('p','Se reasignaron todas las cajas del cliente de origen en esta factura.',item);
+  element('p','Referencia anterior: nv_cliente_'+c.anterior+'.dbi',item).className='download-filename';
+ }
+}
 function mostrarNV(payload,parent){
  const section=element('section','',parent);section.className='presea-download nv-panel';section.dataset.comercial='nv';element('h3','Notas de Venta por cliente',section);
  element('p','Un DBI por cliente. Las NV y los domicilios elegidos quedan guardados con la factura. Administración (131600) queda excluido.',section).className='card-caption';
@@ -296,6 +318,7 @@ function mostrarNV(payload,parent){
   const grid=element('div','',contenido);grid.className='download-grid';
   for(const c of p.clientes){
    const card=crearTarjeta(grid,c.nombre||('Cliente '+c.cliente),'download-card');element('p',c.nombreArchivo,card).className='download-filename';element('p',c.cajas+' cajas · '+c.filas.length+' productos',card).className='card-caption';const estadoImportacion=element('div','',card);estadoImportacion.dataset.nvImportacionCliente=c.cliente;estadoImportacion.dataset.estadoBase=c.pendientesImpacto?'Pendiente de impacto en Presea':c.bloqueada?'Para revisar':'Disponible';estadoImportacion.dataset.disponible=String(!c.bloqueada);
+   mostrarCambiosClienteNV(payload,card,c.cliente);
    for(const error of c.errores)element('p',error,card).className='download-notice';
    if(c.requiereDomicilio&&!nvExistePresea(c.cliente)&&!desactualizadas&&!pendiente)mostrarCorreccionCliente(payload,card,c.cliente);
    const detalle=element('details','',card);element('summary','Ver detalle',detalle);table(['COD_ALFA','Cantidad','DOMI_ENTRE'],c.filas.map(r=>[r.COD_ALFA,r.CANTIDAD,r.DOMI_ENTRE||'—']),detalle);
