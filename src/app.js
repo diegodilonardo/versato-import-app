@@ -392,14 +392,15 @@ app.get('/api/importaciones/analisis/:id/correo/notas-venta.xlsx',async(req,res,
 app.post('/api/importaciones/analisis/:id/correo/configuracion',express.json({limit:'32kb'}),async(req,res,next)=>{try{verificarOrigenCorreo(req);const r=await analisisGuardados.obtener(req.params.id);if(!r?.informeCorreo)throw Object.assign(new Error('Primero prepará el informe de esta factura.'),{status:422});res.set('Cache-Control','no-store').json(require('./services/configuracionCorreo').guardarConfiguracion(r.informeCorreo,req.body));}catch(e){next(e);}});
 app.post('/api/importaciones/analisis/:id/correo/:accion',express.json({limit:'32kb'}),async(req,res,next)=>{
  try{verificarOrigenCorreo(req);if(!['vista-previa','borrador','abrir'].includes(req.params.accion))return res.status(400).json({error:'Acción de correo no válida.'});
- if(req.params.accion==='abrir')require('./services/abrirCorreoLocal').verificarAccesoLocal(req);
+
  const r=await analisisGuardados.obtener(req.params.id);if(!r?.informeCorreo)return res.status(422).json({error:'Prepará el informe del correo desde el análisis guardado.'});
  const deposito=r.archivoDeposito,disponible=deposito&&!deposito.bloqueada;const servicioNV=require('./services/archivoNVCorreo'),archivoNV=servicioNV.prepararExcelNV(r),adjuntosNV=archivoNV?[{nombre:archivoNV.nombre}]:[];
+ if(archivoNV?.advertencias?.length)r.informeCorreo={...r.informeCorreo,advertenciasNV:archivoNV.advertencias};
  if(req.params.accion==='vista-previa')return res.set('Cache-Control','no-store').json(redactarCorreo(r.informeCorreo,req.body,[...(disponible?[{nombre:deposito.nombre}]:[]),...adjuntosNV]));
  if(!disponible)return res.status(422).json({error:'Actualizá el informe para generar y adjuntar el archivo de depósito.'});
  const adjunto=deposito.version>=2?require('./services/archivoDeposito').exportarDeposito(deposito):await analisisGuardados.archivo(req.params.id,deposito.nombre)||require('./services/archivoDeposito').exportarDeposito(deposito);
  const adjuntos=[{nombre:deposito.nombre,tipo:require('./services/archivoDeposito').TIPO,buffer:adjunto},...(archivoNV?[{nombre:archivoNV.nombre,tipo:servicioNV.TIPO,buffer:servicioNV.exportarExcelNV(archivoNV)}]:[])];
- const buffer=crearBorrador(r.informeCorreo,req.body,adjuntos);if(req.params.accion==='abrir'){await require('./services/abrirCorreoLocal').abrirCorreoLocal(buffer);return res.set('Cache-Control','no-store').json({abierto:true});}res.set('Cache-Control','no-store').type('message/rfc822').attachment('Informe-Versato-'+r.informeCorreo.factura.replace(/[^0-9A-Za-z-]/g,'-')+'.eml').send(buffer);
+ const buffer=crearBorrador(r.informeCorreo,req.body,adjuntos);res.set('Cache-Control','no-store').type('message/rfc822').attachment('Informe-Versato-'+r.informeCorreo.factura.replace(/[^0-9A-Za-z-]/g,'-')+'.eml').send(buffer);
  }catch(error){next(error);}
 });
 app.get('/api/historial',async(req,res,next)=>{try{res.set('Cache-Control','no-store').json({persistente:baseSQL.habilitada(),analisis:await analisisGuardados.listar()});}catch(e){next(e);}});

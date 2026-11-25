@@ -91,6 +91,10 @@ function redactarCorreo(informe,entrada={},adjuntos=[]){
  let texto=titulo+'\r\n\r\n'+num(total.cajas)+' cajas · '+num(total.pares)+' pares\r\n';
  for(const [titulo,headers,rows]of cuadros){html+='<h2 style="'+fuente+'font-size:11pt;line-height:15pt;mso-line-height-rule:exactly;font-weight:bold;color:#355b40;margin:14pt 0 5pt;">'+titulo+'</h2>'+htmlTabla(headers,rows);texto+='\r\n'+titulo+'\r\n'+headers.join('\t')+'\r\n'+rows.map(r=>r.map((v,j)=>j>=r.length-2?num(v):v).join('\t')).join('\r\n')+'\r\nTOTAL GENERAL\t'+num(total.cajas)+'\t'+num(total.pares)+'\r\n';}
  if(o.deposito||o.observaciones){html+='<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;margin-top:16pt;background-color:#f6f8f3;"><tr><td style="padding:10pt 11pt;'+estiloParrafo+'">';for(const [etiqueta,valor]of [['Depósito',o.deposito],['Observaciones',o.observaciones]])if(valor){html+='<p style="'+estiloParrafo+'margin:0 0 4pt;"><strong>'+etiqueta+':</strong> '+esc(valor).replace(/\r?\n/g,'<br>')+'</p>';texto+='\r\n'+etiqueta+': '+valor+'\r\n';}html+='</td></tr></table>';}
+ if(informe.advertenciasNV?.length){
+  const aviso='Observaciones del detalle de NV';texto+='\r\n'+aviso+'\r\n'+informe.advertenciasNV.join('\r\n')+'\r\n';
+  html+='<h2 style="'+estiloParrafo+'">'+aviso+'</h2><div style="'+estiloParrafo+'background-color:#fff8ed;padding:10pt;">'+informe.advertenciasNV.map(a=>'<p>'+esc(a)+'</p>').join('')+'</div>';
+ }
  if(informe.cambiosNV?.length){
   const tituloCambios='NV modificadas · cambios de cliente';
   html+='<h2 style="'+fuente+'font-size:11pt;line-height:15pt;color:#80551e;margin:14pt 0 5pt;">'+tituloCambios+'</h2>';
