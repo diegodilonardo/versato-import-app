@@ -654,3 +654,34 @@ Restauración: detener la app, restaurar el .bak con SSMS, recuperar .env, data 
 precios (en PRECIOS_DIR si era externo), y usar la versión Git indicada en el
 manifiesto. Ajustar rutas/credenciales de la nueva máquina antes de iniciar el servicio.
 RESTORE VERIFYONLY y los hashes no reemplazan una prueba periódica de restauración.
+
+### Coeficientes y vigencias en SQL
+
+Los coeficientes se guardan en versato.DocumentosApp, clave precios-coeficientes;
+el historial previo de la etapa anterior se conserva como precios-vigencias-anteriores.
+Requiere la migración 007 ya aplicada. No hay una tabla adicional ni se necesitan
+permisos DDL para importar. Incluye revisión, historial completo, estados activos/
+inactivos, vigencias futuras y eventos de cambio de estado.
+
+Al consultar por primera vez, se importa data/precios-coeficientes.json únicamente
+si la clave no existe en SQL. Una configuración SQL restaurada prevalece sobre los
+archivos locales. No se recurre silenciosamente al JSON cuando falla SQL.
+
+Si la instalación ya había creado una configuración SQL vacía, con el archivo de
+coeficientes recuperado en data, ejecutar una sola vez:
+
+```powershell
+node scripts/migrar-coeficientes-sql.js
+```
+
+También acepta la ruta al JSON como primer argumento. Importa únicamente si SQL no
+contiene vigencias; nunca reemplaza un historial no vacío. Muestra el número de
+vigencias persistidas sin imprimir valores. Para comprobar luego la copia completa:
+
+```powershell
+node scripts/migrar-configuracion-sql.js
+```
+
+El backup de FC_VERSATO_APP incluye ahora estos coeficientes y sus estados.
+Generar un nuevo backup después de migrar. El archivo de Excel original, imágenes
+y .env mantienen su respaldo separado.

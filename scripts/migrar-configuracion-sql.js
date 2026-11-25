@@ -9,6 +9,8 @@ async function ejecutar(){
   try{return JSON.parse(await fs.readFile(path.join(__dirname,'../data/grillas-programadas.json'),'utf8'));}catch(e){if(e.code==='ENOENT')return {};throw e;}
  });
  console.log('Estados de grillas en SQL:',Object.keys(historial.estados||{}).length);
+ const coeficientes=await require('../src/services/almacenCoeficientes').leer();await require('../src/services/almacenCoeficientes').leerAnterior();
+ console.log('Vigencias de coeficientes en SQL:',coeficientes.historial.length);
  try{const clientes=await require('../src/services/clientesSQL').leer();console.log('Registros de clientes en SQL:',clientes.maestro.registros);}catch(e){if(e.code!=='ENOENT')throw e;console.log('Sin maestro local de clientes: sincronizalo una vez desde la app.');}
 }
 ejecutar().catch(e=>{console.error(e.message);process.exitCode=1;}).finally(()=>bd.cerrar());
