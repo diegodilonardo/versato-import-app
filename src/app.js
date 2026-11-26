@@ -38,6 +38,8 @@ const memoria=crearAlmacen();
 const vistasPrevias=crearAlmacen({max:3,ttl:30*60*1000});
 const analisisGuardados=baseSQL.habilitada()?crearRepositorioSQL():{...memoria,archivo:async()=>null,imagen:async()=>null,listar:async()=>[],envios:async()=>[],iniciarEnvio:async()=>null,finalizarEnvio:async()=>{}};
 const app = express();
+if(process.env.AUTH_PROXY_IP){const proxies=process.env.AUTH_PROXY_IP.split(',').map(s=>s.trim()).filter(Boolean);if(!proxies.length||proxies.some(ip=>!require('node:net').isIP(ip)))throw Error('AUTH_PROXY_IP debe contener solamente las IP exactas de los proxies autorizados.');app.set('trust proxy',proxies);}
+require('./services/autenticacion').crear().instalar(app);
 const operacionesFactura = new Map();
 const cancelacionesFactura = new Set();
 app.use('/api/importaciones/analisis/:id', async (req, res, next) => {
@@ -536,8 +538,9 @@ app.get('/api/stock/vistas',async(req,res,next)=>{try{res.set('Cache-Control','n
 app.get('/api/stock/programador',async(req,res,next)=>{try{res.set('Cache-Control','no-store').json(await require('./services/programadorGrillas').estado());}catch(e){next(e);}});
 app.post('/api/stock/vistas/:id/programacion',express.json({limit:'8kb'}),async(req,res,next)=>{try{verificarOrigenCorreo(req);const servicio=require('./services/vistasStock'),v=(await servicio.leer()).find(v=>v.id===req.params.id);if(!v)throw Object.assign(Error('La vista ya no existe.'),{status:404});res.json(await servicio.guardar({...v,revision:req.body?.revision,programacion:req.body?.programacion}));}catch(e){next(e);}});
 app.post('/api/stock/vistas/:id/ejecutar',express.json({limit:'4kb'}),async(req,res,next)=>{try{verificarOrigenCorreo(req);res.status(202).json(await require('./services/programadorGrillas').ejecutar(req.params.id,req.body?.revision));}catch(e){next(e);}});
-app.post('/api/stock/vistas',express.json({limit:'64kb'}),async(req,res,next)=>{try{verificarOrigenCorreo(req);res.set('Cache-Control','no-store').json(await require('./services/vistasStock').guardar(req.body));}catch(e){next(e);}});
-app.delete('/api/stock/vistas/:id',express.json({limit:'4kb'}),async(req,res,next)=>{try{verificarOrigenCorreo(req);await require('./services/vistasStock').eliminar(req.params.id,req.body?.revision);res.json({eliminada:true});}catch(e){next(e);}});
+async function verificarPermisoVista(req,id){if(!req.usuario||require('./services/permisos').tiene(req.usuario,'stock.programar'))return;if(req.body?.programacion!==undefined)throw Object.assign(Error('No tenés permiso para configurar publicaciones de grillas.'),{status:403});if(id){const vista=(await require('./services/vistasStock').leer()).find(v=>v.id===id);if(vista?.programacion?.activa)throw Object.assign(Error('Para modificar o eliminar una vista con publicación activa necesitás el permiso de programar grillas.'),{status:403});}}
+app.post('/api/stock/vistas',express.json({limit:'64kb'}),async(req,res,next)=>{try{verificarOrigenCorreo(req);await verificarPermisoVista(req,req.body?.id);res.set('Cache-Control','no-store').json(await require('./services/vistasStock').guardar(req.body));}catch(e){next(e);}});
+app.delete('/api/stock/vistas/:id',express.json({limit:'4kb'}),async(req,res,next)=>{try{verificarOrigenCorreo(req);await verificarPermisoVista(req,req.params.id);await require('./services/vistasStock').eliminar(req.params.id,req.body?.revision);res.json({eliminada:true});}catch(e){next(e);}});
 app.get('/api/stock', async(req,res,next)=>{try{res.set('Cache-Control','no-store').json(await require('./services/stock').catalogo());}catch(e){next(e);}});
 app.post('/api/stock/actualizar', async(req,res,next)=>{try{verificarOrigenCorreo(req);res.set('Cache-Control','no-store').json(await require('./services/stock').actualizar());}catch(e){next(e);}});
 app.get('/api/stock/grilla', async(req,res,next)=>{try{

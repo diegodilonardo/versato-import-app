@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="es">
-<head>
+<head><script src="/sesion.js?v=20261126"></script>
  <meta charset="utf-8">
  <meta name="viewport" content="width=device-width, initial-scale=1">
  <title>Maestro de clientes · Versato</title>
- <link rel="stylesheet" href="/styles.css">
+ <link rel="stylesheet" href="/styles.css?v=20261126-usuarios">
  <script src="/clientes.js" defer></script>
 </head>
 <body>
@@ -14,7 +14,7 @@
  <section class="card">
   <div class="price-actions">
    <label class="price-search">Código o nombre<input id="buscar-cliente" type="search" maxlength="100" placeholder="13950 o nombre del cliente"></label>
-   <button id="actualizar-clientes" type="button">Actualizar desde FTP</button>
+   <button id="actualizar-clientes" data-permiso="clientes.editar" type="button">Actualizar desde FTP</button>
   </div>
   <p id="estado-clientes" role="status"></p>
   <div class="table-scroll">

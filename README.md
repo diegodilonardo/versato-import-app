@@ -685,3 +685,7 @@ node scripts/migrar-configuracion-sql.js
 El backup de FC_VERSATO_APP incluye ahora estos coeficientes y sus estados.
 Generar un nuevo backup después de migrar. El archivo de Excel original, imágenes
 y .env mantienen su respaldo separado.
+
+## Usuarios, contraseñas y permisos
+
+Implementación opcional mediante `AUTH_ENABLED=true`, con cinco perfiles, permisos por usuario y auditoría en SQL. Aplicar primero `sql/008_usuarios_y_sesiones.sql` y crear el administrador desde `scripts/crear-primer-admin.ps1`. No hay contraseña predeterminada. Ver [instalación y activación](docs/usuarios-y-permisos.md), incluyendo HTTPS, permisos SQL y funcionamiento de los cron sin sesiones de navegador.

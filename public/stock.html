@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="es">
-<head>
+<head><script src="/sesion.js?v=20261126"></script>
  <meta charset="utf-8">
  <meta name="viewport" content="width=device-width, initial-scale=1">
  <title>Stock · Versato</title>
- <link rel="stylesheet" href="/styles.css?v=20261126-progreso-programado">
+ <link rel="stylesheet" href="/styles.css?v=20261126-usuarios">
  <script src="/stock.js?v=20261126-progreso-programado" defer></script>
 </head>
 <body>
@@ -12,16 +12,16 @@
 <main>
  <p class="eyebrow">DISPONIBILIDAD POR DEPÓSITO</p><h1>Grillas de stock</h1>
  <section class="card">
-  <div class="price-actions"><button id="stock-actualizar">Actualizar stock desde FTP</button></div>
+  <div class="price-actions"><button id="stock-actualizar" data-permiso="stock.editar">Actualizar stock desde FTP</button></div>
   <p id="stock-estado" role="status">Consultando stock…</p>
   <div class="stock-vistas">
    <h2>Vistas guardadas</h2>
    <div class="stock-filtros">
     <label>Elegir vista<select id="stock-vista"><option value="">Seleccioná una vista</option></select></label>
     <label>Nombre de la vista<input id="stock-vista-nombre" maxlength="80" placeholder="Ej.: Vendedores · depósito 7"></label>
-    <button id="stock-guardar" type="button">Guardar nueva vista</button>
-    <button id="stock-vista-actualizar" type="button" class="secondary" disabled>Actualizar vista</button>
-    <button id="stock-vista-eliminar" type="button" class="secondary" disabled>Eliminar vista</button>
+    <button id="stock-guardar" data-permiso="stock.editar" type="button">Guardar nueva vista</button>
+    <button id="stock-vista-actualizar" data-permiso="stock.editar" type="button" class="secondary" disabled>Actualizar vista</button>
+    <button id="stock-vista-eliminar" data-permiso="stock.editar" type="button" class="secondary" disabled>Eliminar vista</button>
     <button id="stock-exportar" class="stock-descargar-vista" type="button" disabled>Descargar grilla para vendedores</button>
    </div>
    <p id="stock-vista-estado" class="muted" role="status">Se guardan los filtros. Al abrir una vista se consultan el stock y los precios disponibles en la app.</p>
@@ -39,8 +39,8 @@
 <label id="stock-programa-cron-campo">Frecuencia (cron)<input id="stock-programa-cron" value="*/5 * * * *" maxlength="100"></label>
 <label id="stock-programa-fecha-campo" hidden>Fecha y hora · Argentina<input id="stock-programa-fecha" type="datetime-local"></label>
     <label class="programa-check"><input id="stock-programa-cambios" type="checkbox" checked> Publicar solo si hay cambios</label>
-    <div class="programa-acciones"><button id="stock-programa-guardar" type="button">Guardar programación</button>
-    <button id="stock-programa-ejecutar" type="button" class="secondary">Ejecutar ahora</button></div>
+    <div class="programa-acciones"><button id="stock-programa-guardar" data-permiso="stock.programar" type="button">Guardar programación</button>
+    <button id="stock-programa-ejecutar" data-permiso="stock.programar" type="button" class="secondary">Ejecutar ahora</button></div>
    </div>
    <p class="muted">Días y horario: elegí los días de la semana y una hora fija. Una sola vez: elegí fecha y hora; al completar queda finalizada. Si la app estaba apagada, se ejecuta al volver a iniciarla. Recurrente: cada 5 minutos, */5 * * * *; lunes a viernes a las 8:00, 0 8 * * 1-5. Varias listas o depósitos separados generan un ZIP.</p>
    <p id="stock-programa-mensaje" role="status"></p><div id="stock-programa-progreso" hidden><progress aria-label="Ejecución de grilla programada"></progress><p id="stock-programa-tiempo" role="status" aria-live="polite"></p></div><p id="stock-programa-ftp" class="muted"></p>
