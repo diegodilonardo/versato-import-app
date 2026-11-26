@@ -4,8 +4,8 @@
  <meta charset="utf-8">
  <meta name="viewport" content="width=device-width, initial-scale=1">
  <title>Stock · Versato</title>
- <link rel="stylesheet" href="/styles.css?v=20261125-descarga-en-fila">
- <script src="/stock.js?v=20261124-talles-verticales" defer></script>
+ <link rel="stylesheet" href="/styles.css?v=20261126-progreso-programado">
+ <script src="/stock.js?v=20261126-progreso-programado" defer></script>
 </head>
 <body>
 <header><a href="/importaciones" class="brand">versato<span> / import</span></a><nav aria-label="Navegación principal"><a href="/importaciones">Importaciones</a><a href="/historial">Historial</a><a href="/consultas">Consultas</a><a href="/clientes">Maestro de clientes</a><a href="/stock" aria-current="page">Stock</a><a href="/precios">Precios</a><a href="/fotos">Fotos</a><a href="/logicas" target="_blank" rel="noopener">Lógicas y controles ↗</a></nav><span class="badge">Local</span></header>
@@ -43,7 +43,7 @@
     <button id="stock-programa-ejecutar" type="button" class="secondary">Ejecutar ahora</button></div>
    </div>
    <p class="muted">Días y horario: elegí los días de la semana y una hora fija. Una sola vez: elegí fecha y hora; al completar queda finalizada. Si la app estaba apagada, se ejecuta al volver a iniciarla. Recurrente: cada 5 minutos, */5 * * * *; lunes a viernes a las 8:00, 0 8 * * 1-5. Varias listas o depósitos separados generan un ZIP.</p>
-   <p id="stock-programa-mensaje" role="status"></p><p id="stock-programa-ftp" class="muted"></p>
+   <p id="stock-programa-mensaje" role="status"></p><div id="stock-programa-progreso" hidden><progress aria-label="Ejecución de grilla programada"></progress><p id="stock-programa-tiempo" role="status" aria-live="polite"></p></div><p id="stock-programa-ftp" class="muted"></p>
    <div class="table-wrap"><table><thead><tr><th>Vista</th><th>Estado</th><th>Última publicación</th><th>Próxima ejecución</th><th>Archivo / detalle</th></tr></thead><tbody id="stock-programa-tabla"></tbody></table></div>
   </details>
   <div class="stock-config">

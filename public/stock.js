@@ -3,6 +3,7 @@ const numero = n => typeof n==='number' ? n.toLocaleString('es-AR',{maximumFract
 let pagina=0, parametrosExportar, solicitud=0, demora, exportando=false;
 let guardada;
 let vistas=[];
+let ejecucionProgramada=null,temporizadorPrograma,consultandoPrograma=false;
 try { guardada=JSON.parse(localStorage.getItem('versato-stock')||'null'); } catch {}
 function estado(t){ $('estado')?.remove(); let p=document.getElementById('estado-stock');if(!p){p=document.createElement('p');p.id='estado-stock';p.role='status';$('actualizar').parentNode.append(p);}p.textContent=t; }
 function seleccion(id){return [...$(id).querySelectorAll('input:checked')].map(i=>i.value);}
@@ -129,7 +130,7 @@ function cargarProgramacion(){
  const p=vistaElegida()?.programacion||{activa:false,destino:'',cron:'*/5 * * * *',soloCambios:true};
  $('programa-modo').value=p.modo||(p.destino?'recurrente':'semanal');$('programa-hora').value=p.hora||'08:00';for(const i of $('programa-dias').querySelectorAll('input'))i.checked=(p.dias||[1,2,3,4,5]).includes(Number(i.value));$('programa-fecha').value=p.ejecutarEn?new Date(Date.parse(p.ejecutarEn)-10800000).toISOString().slice(0,16):'';modoProgramacion();
  $('programa-activa').checked=p.activa;$('programa-destino').value=p.destino;$('programa-cron').value=p.cron;$('programa-cambios').checked=p.soloCambios;
- $('programa-guardar').disabled=$('programa-ejecutar').disabled=!vistaElegida();
+ $('programa-guardar').disabled=!vistaElegida();$('programa-ejecutar').disabled=!vistaElegida()||!!ejecucionProgramada;
 }
 $('vista').addEventListener('change',cargarProgramacion);
 $('programa-guardar').onclick=async()=>{
@@ -137,16 +138,27 @@ $('programa-guardar').onclick=async()=>{
  try{const r=await pedir('/api/stock/vistas/'+encodeURIComponent(v.id)+'/programacion',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({revision:v.revision,programacion:{dias:seleccion('programa-dias').map(Number),hora:$('programa-hora').value,modo:$('programa-modo').value,ejecutarEn:$('programa-fecha').value,activa:$('programa-activa').checked,destino:$('programa-destino').value,cron:$('programa-cron').value,soloCambios:$('programa-cambios').checked}})});vistas=vistas.map(a=>a.id===r.id?r:a);cargarProgramacion();$('programa-mensaje').textContent='Programación guardada para «'+r.nombre+'».';await estadoProgramador();}
  catch(e){$('programa-mensaje').textContent=e.message;}finally{$('programa-guardar').disabled=!vistaElegida();}
 };
-$('programa-ejecutar').onclick=async()=>{const v=vistaElegida();if(!v)return;
- try{await pedir('/api/stock/vistas/'+encodeURIComponent(v.id)+'/ejecutar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({revision:v.revision})});$('programa-mensaje').textContent='Ejecución en cola. Se usa la configuración guardada; el estado se actualiza automáticamente.';await estadoProgramador();}catch(e){$('programa-mensaje').textContent=e.message;}
+function tiempoPrograma(){
+ if(!ejecucionProgramada)return;const e=ejecucionProgramada,segundos=Math.floor((Date.now()-e.inicio)/1000),tiempo=String(Math.floor(segundos/60)).padStart(2,'0')+':'+String(segundos%60).padStart(2,'0');
+ $('programa-tiempo').textContent='Vista «'+e.nombre+'» · '+e.etapa+' · Tiempo transcurrido '+tiempo;
+}
+function terminarPrograma(mensaje){
+ tiempoPrograma();clearInterval(temporizadorPrograma);ejecucionProgramada=null;$('programa-progreso').querySelector('progress').hidden=true;$('programa-mensaje').textContent=mensaje;$('programa-ejecutar').disabled=!vistaElegida();
+}
+$('programa-ejecutar').onclick=async()=>{const v=vistaElegida();if(!v||ejecucionProgramada)return;
+ ejecucionProgramada={id:v.id,nombre:v.nombre,inicio:Date.now(),etapa:'Solicitando ejecución',aceptada:false};$('programa-ejecutar').disabled=true;$('programa-progreso').hidden=false;$('programa-progreso').querySelector('progress').hidden=false;$('programa-mensaje').textContent='';tiempoPrograma();temporizadorPrograma=setInterval(tiempoPrograma,1000);
+ try{const previo=await pedir('/api/stock/programador');ejecucionProgramada.anterior=previo.vistas.find(a=>a.id===v.id)?.intento;
+ await pedir('/api/stock/vistas/'+encodeURIComponent(v.id)+'/ejecutar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({revision:v.revision})});ejecucionProgramada.aceptada=true;ejecucionProgramada.etapa='En cola';tiempoPrograma();await estadoProgramador();}catch(e){terminarPrograma(e.message);}
 };
 async function estadoProgramador(){
+ if(consultandoPrograma)return;consultandoPrograma=true;
  try{const d=await pedir('/api/stock/programador'),fecha=f=>f?new Date(f).toLocaleString('es-AR',{timeZone:d.zona}):'—';
+ if(ejecucionProgramada?.aceptada){const e=ejecucionProgramada,v=d.vistas.find(a=>a.id===e.id);if(v?.intento&&v.intento!==e.anterior){e.etapa=v.estado==='Generando'?'Actualizando stock, generando y publicando':v.estado;tiempoPrograma();if(['Publicada','Sin cambios','Completada','Completada · sin cambios','Error'].includes(v.estado))terminarPrograma(v.estado==='Error'?'Error al ejecutar «'+e.nombre+'»: '+v.error:'Vista «'+e.nombre+'»: '+v.estado+'.');}else if(!v)terminarPrograma('La vista ya no está disponible.');}
  $('programa-ftp').textContent='Stock FTP: '+(d.ftp.estado||'Pendiente')+' · '+fecha(d.ftp.fecha)+(d.ftp.error?' · '+d.ftp.error:'');
  $('programa-tabla').replaceChildren();for(const v of d.vistas){const tr=document.createElement('tr');for(const t of [v.nombre,v.estado||(v.programacion?.activa?'Programada':'Desactivada'),fecha(v.publicada),fecha(v.proxima),v.error||v.archivo||'Sin publicaciones']){const td=document.createElement('td');td.textContent=t;tr.append(td);}$('programa-tabla').append(tr);}
- }catch(e){$('programa-ftp').textContent=e.message;}
+ }catch(e){$('programa-ftp').textContent='No se pudo consultar el estado. Se reintentará: '+e.message;}finally{consultandoPrograma=false;}
 }
-cargarProgramacion();estadoProgramador();setInterval(()=>{if(!document.hidden)estadoProgramador();},10000);
+cargarProgramacion();estadoProgramador();setInterval(()=>{if(!document.hidden||ejecucionProgramada)estadoProgramador();},3000);
 
 function modoProgramacion(){const modo=$('programa-modo').value;$('programa-cron-campo').hidden=modo!=='recurrente';$('programa-fecha-campo').hidden=modo!=='unica';$('programa-hora-campo').hidden=$('programa-dias').hidden=modo!=='semanal';}
 $('programa-modo').addEventListener('change',modoProgramacion);
